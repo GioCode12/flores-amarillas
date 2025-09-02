@@ -1,0 +1,41 @@
+:root {
+  --bg1:#1b1bff; --bg2:#7a37ff; --bg3:#ff6ec7;
+  --glass:rgba(255,255,255,.12);
+  --card:rgba(255,255,255,.18);
+  --stroke:#90ff64; --accent:#9dff00; --text:#f8fff2;
+}
+
+body {
+  margin:0;
+  font-family:'Inclusive Sans', sans-serif;
+  color:var(--text);
+  background: linear-gradient(120deg,var(--bg1),var(--bg2),var(--bg3));
+  background-size: 200% 200%;
+  animation: bgShift 20s ease infinite;
+  overflow:hidden;
+}
+
+@keyframes bgShift {
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+.wrap { height:100vh; display:grid; grid-template-rows:1fr auto; }
+.stage { position:relative; width:90%; max-width:1000px; margin:auto;
+  height:80%; border-radius:24px; background:var(--glass); backdrop-filter: blur(8px);
+}
+canvas { position:absolute; inset:0; width:100%; height:100%; }
+
+.title { text-align:center; margin:20px 0 0; font-size:3rem; }
+.subtitle { text-align:center; margin:60px 0 0; font-size:1.5rem; }
+
+.panel { position:absolute; bottom:20px; width:100%; display:flex; justify-content:center; }
+.panel-inner { display:flex; gap:12px; background:var(--card); padding:10px 14px; border-radius:16px; }
+
+.btn { border:2px solid #63d145; background:#c7ffa1; padding:10px 16px; border-radius:14px;
+  cursor:pointer; font-family:monospace; font-size:1.2rem; transition:.2s; }
+.btn:hover { background:white; transform:scale(1.05); }
+
+.love { position:absolute; bottom:80px; width:100%; text-align:center; font-size:2rem; display:none; }
+footer { text-align:center; padding:10px; font-size:14px; }
