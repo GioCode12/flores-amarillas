@@ -260,7 +260,7 @@ const RAMO_FIJO = {
   spreadX: 0.12,
   spreadY: 0.10,
   baseX:   0.40,
-  baseY:   0.60,
+  baseY:   0.50,
 };
 function getConfigMedidasFijas() {
   const w = canvas.width, h = canvas.height, min = Math.min(w, h);
@@ -338,3 +338,4 @@ const ro = new ResizeObserver(() => {
   solicitarRedibujoMedidasFijas();
 });
 ro.observe(canvas);
+
