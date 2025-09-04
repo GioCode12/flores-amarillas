@@ -5,8 +5,8 @@
   --stroke:#90ff64; --accent:#9dff00; --text:#f8fff2;
 }
 
-*{box-sizing:border-box}
-html,body{height:100%}
+*{ box-sizing:border-box }
+html,body{ height:100% }
 
 body{
   margin:0;
@@ -15,9 +15,9 @@ body{
   background:linear-gradient(120deg,var(--bg1),var(--bg2),var(--bg3));
   background-size:200% 200%;
   animation:bgShift 20s ease infinite;
-  min-height:100svh;             
-  overflow-x:hidden;
+  min-height:100vh;
   -webkit-text-size-adjust:100%;
+  overflow-x:hidden;
 }
 
 @keyframes bgShift{
@@ -26,7 +26,7 @@ body{
   100%{background-position:0% 50%}
 }
 
-.wrap{min-height:100svh; display:grid; grid-template-rows:1fr auto;}
+.wrap{ min-height:100vh; display:grid; grid-template-rows:1fr auto; }
 
 .stage{
   position:relative;
@@ -37,23 +37,25 @@ body{
   -webkit-backdrop-filter:blur(10px);
   backdrop-filter:blur(10px);
   box-shadow:0 10px 30px rgba(0,0,0,.18);
-  padding:16px 16px 120px;      
+  padding:16px 16px 120px; /* espacio para panel sticky */
 }
 
-/* Altura del canvas con fallback a vh si svh no existe */
+/* Canvas responsive: altura estable en móvil */
 #Flor{
   display:block;
   width:100%;
-  min-height: 300px;
-  height:clamp(280px, 48vh, 580px);   
+  height:clamp(300px, 48vh, 560px);     /* fallback */
   border-radius:16px;
-  touch-action: manipulation;         
+  min-height:300px;                      /* nunca 0px */
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  touch-action:manipulation;
 }
 @supports (height: 1svh){
-  #Flor{ height:clamp(280px, 48svh, 580px); }  /* estable con barra de direcciones */
+  #Flor{ height:clamp(300px, 48svh, 560px); } /* estable con barras UI móviles */
 }
 
-/* Tipografía fluida */
+/* Tipografías fluidas */
 .title{
   text-align:center;
   margin:10px 0 0;
@@ -75,10 +77,10 @@ body{
   display:none;
 }
 
-/* Panel sticky */
+/* Panel sticky, respetando notch/home bar */
 .panel{
   position:sticky;
-  bottom:calc(max(12px, env(safe-area-inset-bottom)));
+  bottom:calc(max(12px, env(safe-area-inset-bottom))); /* notch / barra gesto */
   z-index:5;
   display:flex;
   justify-content:center;
@@ -92,33 +94,28 @@ body{
   border-radius:16px;
   box-shadow:0 6px 18px rgba(0,0,0,.14);
 }
-
 .btn{
   border:2px solid var(--stroke);
   background:#c7ffa1;
-  padding:10px 16px;
+  padding:12px 18px;
   border-radius:14px;
   cursor:pointer;
   font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size:clamp(14px, 3.8vw, 20px);
+  font-size:clamp(16px, 4.2vw, 20px);
   transition:.2s;
 }
 .btn:hover{ background:#fff; transform:translateY(-1px); }
 
 .vol{ display:flex; align-items:center; gap:8px; }
-.vol input[type="range"]{ width:min(48vw,340px); }
+.vol input[type="range"]{ width:min(48vw,340px); height:32px; }
 
-footer{
-  text-align:center;
-  padding:12px 8px calc(12px + env(safe-area-inset-bottom));
-  font-size:clamp(12px, 3.4vw, 14px);
-  opacity:.9;
-}
-
+/* Móvil: más colchón para que el panel no tape el ramo */
 @media (max-width:480px){
-  .stage{ padding-bottom: max(130px, calc(100px + env(safe-area-inset-bottom))); }
+  .stage{ padding-bottom:max(140px, calc(110px + env(safe-area-inset-bottom))); }
+  .vol input[type="range"]{ width:62vw; }
 }
 
+/* Desktop grande */
 @media (min-width:1024px){
   #Flor{ height:clamp(420px, 52vh, 620px); }
   .stage{ padding:20px 20px 120px; }
