@@ -15,6 +15,7 @@
       <section class="stage">
         <h1 class="title" id="Titulo">Para Kim</h1>
         <h2 class="subtitle" id="Sub">Unas flores amarillas para iluminar tu día</h2>
+
         <canvas id="Flor"></canvas>
 
         <div class="panel">
@@ -40,12 +41,14 @@
   </audio>
   <script defer src="js/app.js"></script>
   <script>
-    addEventListener('load', () => dispatchEvent(new Event('resize')));
-    addEventListener('pageshow', () => dispatchEvent(new Event('resize')));
+    // Primer reflow al cargar (importante para GitHub Pages y Android)
+    window.addEventListener('load', () => {
+      window.dispatchEvent(new Event('resize'));
+    });
   </script>
 </body>
 </html>
-</html>
+
 
 
 
