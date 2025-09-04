@@ -258,18 +258,23 @@ const RAMO_FIJO = {
   baseX:   0.40,
   baseY:   0.70,
 };
+
 function getConfigMedidasFijas() {
   const w = canvas.width, h = canvas.height, min = Math.min(w, h);
+
+  // Detectar móvil
+  const isMobile = window.matchMedia("(max-width: 600px)").matches;
+
   return {
     count: RAMO_FIJO.count,
-    centroX: w * RAMO_FIJO.centroX,
-    centroY: h * RAMO_FIJO.centroY,
-    spreadX: min * RAMO_FIJO.spreadX * 1.10, 
-    spreadY: min * RAMO_FIJO.spreadY * 1.10, 
-    baseX:   w * RAMO_FIJO.baseX,
-    baseY:   h * RAMO_FIJO.baseY,
+    centroX: w * 0.50,                   // centrado en ancho
+    centroY: h * (isMobile ? 0.30 : 0.42), // más arriba en móvil
+    spreadX: min * RAMO_FIJO.spreadX * 1.10,
+    spreadY: min * RAMO_FIJO.spreadY * 1.10,
+    baseX:   w * 0.50,
+    baseY:   h * (isMobile ? 0.60 : 0.72), // más arriba en móvil
   };
-}
+
 
 // =================== Animación “ramillete” ===================
 function animarRamoRamillete({
@@ -369,4 +374,5 @@ B1.addEventListener('click', onReceive, { passive: true });
 B1.addEventListener('touchstart', onReceive, { passive: true });
 });
 ro.observe(canvas);
+
 
