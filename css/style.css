@@ -15,7 +15,7 @@ body{
   background:linear-gradient(120deg,var(--bg1),var(--bg2),var(--bg3));
   background-size:200% 200%;
   animation:bgShift 20s ease infinite;
-  min-height:100svh;             /* estable en Android/iOS */
+  min-height:100svh;             
   overflow-x:hidden;
   -webkit-text-size-adjust:100%;
 }
@@ -37,16 +37,17 @@ body{
   -webkit-backdrop-filter:blur(10px);
   backdrop-filter:blur(10px);
   box-shadow:0 10px 30px rgba(0,0,0,.18);
-  padding:16px 16px 120px;       /* extra para el panel */
+  padding:16px 16px 120px;      
 }
 
 /* Altura del canvas con fallback a vh si svh no existe */
 #Flor{
   display:block;
   width:100%;
-  height:clamp(280px, 48vh, 580px);   /* fallback */
+  min-height: 300px;
+  height:clamp(280px, 48vh, 580px);   
   border-radius:16px;
-  touch-action: manipulation;         /* mejor tap en Android */
+  touch-action: manipulation;         
 }
 @supports (height: 1svh){
   #Flor{ height:clamp(280px, 48svh, 580px); }  /* estable con barra de direcciones */
