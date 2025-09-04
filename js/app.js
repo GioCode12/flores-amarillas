@@ -1,11 +1,9 @@
-const canvas = document.getElementById('Flor');
-const ctx = canvas.getContext('2d');
-const B1 = document.getElementById('B1');
-const loveText = document.getElementById('loveText');
-const titleH1 = document.getElementById('Titulo');
-const sub = document.getElementById('Sub');
-const bgm = document.getElementById('bgm');
-const vol = document.getElementById('vol');
+const canvas  = document.getElementById('Flor');
+const ctx     = canvas.getContext('2d');
+const B1      = document.getElementById('B1');
+const loveText= document.getElementById('loveText');
+const bgm     = document.getElementById('bgm');
+const vol     = document.getElementById('vol');
 
 // =================== Música ===================
 vol.addEventListener('input', () => {
@@ -15,7 +13,7 @@ async function startMusic() {
   try {
     bgm.volume = parseFloat(vol.value || '0.7');
     await bgm.play();
-  } catch { }
+  } catch {}
 }
 
 // =================== Parámetros visuales ===================
@@ -33,7 +31,7 @@ function dibujarPetalo(x, y, radioX, escalaY, rot, color, prog, offset = 0) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(rot);
-  ctx.translate(offset, 0);     
+  ctx.translate(offset, 0);
   ctx.scale(1, escalaY);
 
   // Glow sutil
@@ -53,7 +51,7 @@ function dibujarPetalo(x, y, radioX, escalaY, rot, color, prog, offset = 0) {
   ctx.fill();
   ctx.stroke();
 
-  ctx.shadowBlur = 0; 
+  ctx.shadowBlur = 0;
   ctx.restore();
 }
 
@@ -74,14 +72,13 @@ function dibujarTalloConvergente(x, y, baseX, baseY, t, grosor = 3, color = '#11
 
 // Par de hojas sobre el tallo (crecen con hojaT en [0..1])
 function dibujarParDeHojas(x, y, ex, ey, hojaT) {
-  const hx = x + (ex - x) * 0.4, hy = y + (ey - y) * 0.4;
+  const hx  = x + (ex - x) * 0.4,  hy  = y + (ey - y) * 0.4;
   const hx2 = x + (ex - x) * 0.65, hy2 = y + (ey - y) * 0.65;
-  dibujarPetalo(hx + 18 * hojaT, hy, 14, 2, Math.PI * 1.05, '#2ecc71', hojaT);
+  dibujarPetalo(hx  + 18 * hojaT, hy,  14, 2, Math.PI * 1.05, '#2ecc71', hojaT);
   dibujarPetalo(hx2 - 18 * hojaT, hy2, 14, 2, Math.PI * 0.05, '#2ecc71', hojaT);
 }
 
 function dibujarCentro(x, y) {
-  // Centro con degradado
   const g = ctx.createRadialGradient(x - 3, y - 3, 2, x, y, 12);
   g.addColorStop(0, '#fffbe9');
   g.addColorStop(1, '#ffe27a');
@@ -106,8 +103,8 @@ function dibujarSombraSuelo(baseX, baseY) {
 
 // =================== Motor de animación ===================
 const DUR_TALLO = 1200;
-const DUR_PET = 700;
-const PALETA = ['#ffdb27', '#ffd000', '#ffe27a', '#f7c948', '#f4d35e'];
+const DUR_PET   = 700;
+const PALETA    = ['#ffdb27', '#ffd000', '#ffe27a', '#f7c948', '#f4d35e'];
 
 // Presupuesto global de hojas (pares) por ramo
 let hojasPairsRestantes = 0;
@@ -119,7 +116,7 @@ class Flor {
     this.start = start; this.z = z;
 
     // Variaciones estéticas
-    this.grosor = 2 + Math.random() * 2; // tallo 2–4 px
+    this.grosor = 2 + Math.random() * 2; 
     this.petalOffset = this.radio * PETAL_OFFSET_MUL;
     this.rotJitter = Array.from({ length: this.petalos }, () => (Math.random() - 0.5) * 0.25);
 
@@ -171,7 +168,6 @@ class Flor {
 
 // =================== Distribución anti-empalme (capas) ===================
 function distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, baseX, baseY) {
-  // Subimos minDist para más aire entre flores
   const capas = [
     { frac: 0.35, radioMul: 0.85, minDist: 48, z: 0 },
     { frac: 0.40, radioMul: 1.00, minDist: 54, z: 1 },
@@ -226,7 +222,7 @@ function distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, bas
     }
     for (const p of pts) puntos.push({ ...p, z: capa.z, radioMul: capa.radioMul });
   });
-  puntos.sort((a,b)=> (a.z - b.z) || (a.y - b.y)); // fondo→frente, arriba→abajo
+  puntos.sort((a,b)=> (a.z - b.z) || (a.y - b.y)); 
   return puntos;
 }
 
@@ -268,8 +264,8 @@ function getConfigMedidasFijas() {
     count: RAMO_FIJO.count,
     centroX: w * RAMO_FIJO.centroX,
     centroY: h * RAMO_FIJO.centroY,
-    spreadX: min * RAMO_FIJO.spreadX * 1.10, // +10% más abierto
-    spreadY: min * RAMO_FIJO.spreadY * 1.10, // +10% más abierto
+    spreadX: min * RAMO_FIJO.spreadX * 1.10, 
+    spreadY: min * RAMO_FIJO.spreadY * 1.10, 
     baseX:   w * RAMO_FIJO.baseX,
     baseY:   h * RAMO_FIJO.baseY,
   };
@@ -286,7 +282,7 @@ function animarRamoRamillete({
 
   const flores = puntos.map((p, i) => {
     const petalos = 6 + Math.floor(Math.random() * 5);
-    const baseRadio = 16 + Math.random() * 10;  // tamaño de pétalo base
+    const baseRadio = 16 + Math.random() * 10;
     const radio = baseRadio * p.radioMul;
     const color = PALETA[Math.floor(Math.random() * PALETA.length)];
     const start = Math.floor(i * 130 + Math.random() * 100);
@@ -295,8 +291,8 @@ function animarRamoRamillete({
 
   function loop(now) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    dibujarSombraSuelo(baseX, baseY); 
-    dibujarLazo(baseX, baseY);        
+    dibujarSombraSuelo(baseX, baseY);
+    dibujarLazo(baseX, baseY);
     let done = 0;
     for (const f of flores) if (f.draw(now, t0)) done++;
     if (done < flores.length) requestAnimationFrame(loop);
@@ -309,32 +305,68 @@ let ramoIniciado = false;
 let rafRedrawTimer = null;
 
 function iniciarConMedidasFijas() {
+  ensureSized(); // <-- asegura tamaño real ANTES de animar (clave en Android)
   animarRamoRamillete(getConfigMedidasFijas());
   ramoIniciado = true;
 }
 function solicitarRedibujoMedidasFijas() {
   if (!ramoIniciado) return;
   if (rafRedrawTimer) cancelAnimationFrame(rafRedrawTimer);
-  rafRedrawTimer = requestAnimationFrame(() => animarRamoRamillete(getConfigMedidasFijas()));
+  rafRedrawTimer = requestAnimationFrame(() =>
+    animarRamoRamillete(getConfigMedidasFijas())
+  );
 }
 
-// =================== Evento principal (click) ===================
-B1.addEventListener('click', () => {
-  startMusic();
-  loveText.style.display = 'block';
-  iniciarConMedidasFijas();
-});
-
-// =================== Escalado HiDPI + Redibujo (móviles) ===================
+// =================== Escalado HiDPI + Redibujo ===================
 function resizeCanvas() {
   const rect = canvas.getBoundingClientRect();
   const dpr = Math.max(1, window.devicePixelRatio || 1);
-  canvas.width = Math.floor(rect.width * dpr);
-  canvas.height = Math.floor(rect.height * dpr);
+  canvas.width  = Math.max(1, Math.floor(rect.width  * dpr));
+  canvas.height = Math.max(1, Math.floor(rect.height * dpr));
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
+
+// Fuerza medidas si rect() da 0 (algunos Android en primer tap)
+function ensureSized() {
+  resizeCanvas();
+  if (canvas.width < 10 || canvas.height < 10) {
+    const dpr  = Math.max(1, window.devicePixelRatio || 1);
+    const cssW = canvas.clientWidth  || canvas.offsetWidth  || 360;
+    const cssH = canvas.clientHeight || canvas.offsetHeight || 240;
+    canvas.width  = Math.floor(cssW * dpr);
+    canvas.height = Math.floor(cssH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+}
+
 const ro = new ResizeObserver(() => {
-  resizeCanvas();                 
+  resizeCanvas();
   solicitarRedibujoMedidasFijas();
 });
 ro.observe(canvas);
+
+// Primer dimensionado en todas las rutas de carga/volver de caché
+window.addEventListener('load', ensureSized);
+window.addEventListener('pageshow', ensureSized);
+
+// Si cambia el DPR (rotación/zoom), re-dimensiona y re-dibuja
+let lastDPR = window.devicePixelRatio;
+setInterval(() => {
+  if (window.devicePixelRatio !== lastDPR) {
+    lastDPR = window.devicePixelRatio;
+    resizeCanvas();
+    solicitarRedibujoMedidasFijas();
+  }
+}, 500);
+
+// =================== Evento principal (click/touch) ===================
+function onReceive() {
+  startMusic();
+  loveText.style.display = 'block';
+  iniciarConMedidasFijas();
+}
+B1.addEventListener('click', onReceive, { passive: true });
+B1.addEventListener('touchstart', onReceive, { passive: true });
+});
+ro.observe(canvas);
+
