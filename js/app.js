@@ -254,13 +254,13 @@ function dibujarLazo(baseX, baseY) {
 
 // =================== Config con tus MEDIDAS (fracciones fijas) ===================
 const RAMO_FIJO = {
-  count: 13,
+  count: 15,
   centroX: 0.40,
   centroY: 0.40,
   spreadX: 0.12,
   spreadY: 0.10,
   baseX:   0.40,
-  baseY:   0.60,
+  baseY:   0.70,
 };
 function getConfigMedidasFijas() {
   const w = canvas.width, h = canvas.height, min = Math.min(w, h);
