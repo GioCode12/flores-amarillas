@@ -14,8 +14,9 @@
     <main>
       <section class="stage">
         <h1 class="title" id="Titulo">Para Kim</h1>
-        <h2 class="subtitle" id="Sub">Unas flores amarilla para iluminar tu día</h2>
-        <canvas id="Flor" width="1000" height="640"></canvas>
+        <h2 class="subtitle" id="Sub">Unas flores amarillas para iluminar tu día</h2>
+
+        <canvas id="Flor"></canvas>
 
         <div class="panel">
           <div class="panel-inner">
@@ -27,7 +28,7 @@
           </div>
         </div>
 
-        <div class="love" id="loveText">Para kim la niña más linda del mundo 💛</div>
+        <div class="love" id="loveText">Para Kim, la niña más linda del mundo 💛</div>
       </section>
     </main>
 
@@ -35,12 +36,17 @@
   </div>
 
   <!-- Música -->
-  <audio id="bgm" preload="auto" loop>
+  <audio id="bgm" preload="auto" loop playsinline>
     <source src="Floricienta-Flores-Amarillas-_Audio_.mp3" type="audio/mpeg" />
   </audio>
-
-  <!-- Script -->
-  <script src="js/app.js"></script>
+  <script defer src="js/app.js"></script>
+  <script>
+    // Primer reflow al cargar (importante para GitHub Pages y Android)
+    window.addEventListener('load', () => {
+      window.dispatchEvent(new Event('resize'));
+    });
+  </script>
 </body>
 </html>
+
 
