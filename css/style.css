@@ -40,12 +40,16 @@ body{
   padding:16px 16px 120px;       /* extra para el panel */
 }
 
+/* Altura del canvas con fallback a vh si svh no existe */
 #Flor{
   display:block;
   width:100%;
-  /* alto: cómodo en móvil y desktop, estable con barra de direcciones */
-  height:clamp(280px, 48svh, 580px);
+  height:clamp(280px, 48vh, 580px);   /* fallback */
   border-radius:16px;
+  touch-action: manipulation;         /* mejor tap en Android */
+}
+@supports (height: 1svh){
+  #Flor{ height:clamp(280px, 48svh, 580px); }  /* estable con barra de direcciones */
 }
 
 /* Tipografía fluida */
@@ -111,8 +115,7 @@ footer{
 }
 
 @media (max-width:480px){
-  .stage{ padding-bottom:130px; }
-  .vol input[type="range"]{ width:56vw; }
+  .stage{ padding-bottom: max(130px, calc(100px + env(safe-area-inset-bottom))); }
 }
 
 @media (min-width:1024px){
