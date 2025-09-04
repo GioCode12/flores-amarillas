@@ -15,12 +15,14 @@ async function startMusic() {
   try {
     bgm.volume = parseFloat(vol.value || '0.7');
     await bgm.play();
-  } catch {}
+  } catch { }
 }
 
 // =================== Parámetros visuales ===================
-const PETAL_OFFSET_MUL = 0.58; // separación radial
-const PETAL_SCALE_Y    = 1.9;  // altura de pétalos
+// Separación radial de pétalos (más alto = más separados)
+const PETAL_OFFSET_MUL = 0.58;
+// Altura de pétalos (2 = más largos)
+const PETAL_SCALE_Y = 1.9;
 
 // =================== Utilidades de dibujo ===================
 function dibujarPetalo(x, y, radioX, escalaY, rot, color, prog, offset = 0) {
@@ -31,9 +33,10 @@ function dibujarPetalo(x, y, radioX, escalaY, rot, color, prog, offset = 0) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(rot);
-  ctx.translate(offset, 0);
+  ctx.translate(offset, 0);     
   ctx.scale(1, escalaY);
 
+  // Glow sutil
   ctx.shadowColor = color;
   ctx.shadowBlur = 6;
 
@@ -50,10 +53,11 @@ function dibujarPetalo(x, y, radioX, escalaY, rot, color, prog, offset = 0) {
   ctx.fill();
   ctx.stroke();
 
-  ctx.shadowBlur = 0;
+  ctx.shadowBlur = 0; 
   ctx.restore();
 }
 
+// Tallo que converge al amarre (retorna la punta del tallo)
 function dibujarTalloConvergente(x, y, baseX, baseY, t, grosor = 3, color = '#113b11') {
   const ex = x + (baseX - x) * t;
   const ey = y + (baseY - y) * t;
@@ -68,6 +72,7 @@ function dibujarTalloConvergente(x, y, baseX, baseY, t, grosor = 3, color = '#11
   return { ex, ey };
 }
 
+// Par de hojas sobre el tallo (crecen con hojaT en [0..1])
 function dibujarParDeHojas(x, y, ex, ey, hojaT) {
   const hx = x + (ex - x) * 0.4, hy = y + (ey - y) * 0.4;
   const hx2 = x + (ex - x) * 0.65, hy2 = y + (ey - y) * 0.65;
@@ -76,6 +81,7 @@ function dibujarParDeHojas(x, y, ex, ey, hojaT) {
 }
 
 function dibujarCentro(x, y) {
+  // Centro con degradado
   const g = ctx.createRadialGradient(x - 3, y - 3, 2, x, y, 12);
   g.addColorStop(0, '#fffbe9');
   g.addColorStop(1, '#ffe27a');
@@ -100,9 +106,10 @@ function dibujarSombraSuelo(baseX, baseY) {
 
 // =================== Motor de animación ===================
 const DUR_TALLO = 1200;
-const DUR_PET   = 700;
-const PALETA    = ['#ffdb27', '#ffd000', '#ffe27a', '#f7c948', '#f4d35e'];
+const DUR_PET = 700;
+const PALETA = ['#ffdb27', '#ffd000', '#ffe27a', '#f7c948', '#f4d35e'];
 
+// Presupuesto global de hojas (pares) por ramo
 let hojasPairsRestantes = 0;
 
 class Flor {
@@ -111,7 +118,8 @@ class Flor {
     this.petalos = petalos; this.radio = radio; this.color = color;
     this.start = start; this.z = z;
 
-    this.grosor = 2 + Math.random() * 2;            // 2–4 px
+    // Variaciones estéticas
+    this.grosor = 2 + Math.random() * 2; // tallo 2–4 px
     this.petalOffset = this.radio * PETAL_OFFSET_MUL;
     this.rotJitter = Array.from({ length: this.petalos }, () => (Math.random() - 0.5) * 0.25);
 
@@ -120,24 +128,30 @@ class Flor {
 
   draw(now, t0) {
     const t = now - t0 - this.start;
+
+    // Progreso del tallo
     const kt = Math.max(0, Math.min(1, t / DUR_TALLO));
 
+    // Tallo (y punta para colocar hojas)
     let ex, ey;
     if (kt > 0) {
       const tip = dibujarTalloConvergente(this.x, this.y, this.baseX, this.baseY, kt, this.grosor, '#0f3b12');
       ex = tip.ex; ey = tip.ey;
 
+      // Reclamar hojas si hay cupo
       if (kt > 0.6 && !this.tieneHojas && hojasPairsRestantes > 0) {
         this.tieneHojas = true;
         hojasPairsRestantes--;
       }
     }
 
+    // Hojas visibles mientras la flor "tenga hojas"
     if (this.tieneHojas && ex !== undefined) {
       const hojaT = kt > 0.6 ? Math.min(1, (kt - 0.6) / 0.4) : 0;
       dibujarParDeHojas(this.x, this.y, ex, ey, hojaT);
     }
 
+    // Pétalos en cascada — con separación radial y jitter de rotación
     const angStep = (Math.PI * 2) / this.petalos;
     for (let i = 0; i < this.petalos; i++) {
       const startPet = DUR_TALLO + i * DUR_PET;
@@ -155,8 +169,9 @@ class Flor {
   }
 }
 
-// =================== Distribución anti-empalme ===================
+// =================== Distribución anti-empalme (capas) ===================
 function distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, baseX, baseY) {
+  // Subimos minDist para más aire entre flores
   const capas = [
     { frac: 0.35, radioMul: 0.85, minDist: 48, z: 0 },
     { frac: 0.40, radioMul: 1.00, minDist: 54, z: 1 },
@@ -176,8 +191,9 @@ function distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, bas
       const r = Math.sqrt(Math.random());
       const x0 = centroX + (a * r) * spreadX;
       let y0 = centroY + (b * r) * spreadY;
-      if (y0 > centroY) y0 = centroY + (y0 - centroY) * 0.6;
+      if (y0 > centroY) y0 = centroY + (y0 - centroY) * 0.6; // base más plana
 
+      // inclinación hacia el amarre
       const dx = baseX - x0, dy = baseY - y0;
       const mag = Math.hypot(dx, dy) || 1;
       const tilt = 0.08;
@@ -185,21 +201,24 @@ function distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, bas
       const y = y0 + (dy / mag) * spreadY * tilt;
       pts.push({ x, y });
     }
-    // relajación
+    // relajación por repulsión
     const iter = 10;
     for (let it = 0; it < iter; it++) {
-      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
-        const p = pts[i], q = pts[j];
-        let dx = q.x - p.x, dy = q.y - p.y;
-        let d = Math.hypot(dx, dy) || 1e-6;
-        const minD = capa.minDist;
-        if (d < minD) {
-          const push = (minD - d) * 0.5;
-          dx /= d; dy /= d;
-          p.x -= dx * push; p.y -= dy * push;
-          q.x += dx * push; q.y += dy * push;
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const p = pts[i], q = pts[j];
+          let dx = q.x - p.x, dy = q.y - p.y;
+          let d = Math.hypot(dx, dy) || 1e-6;
+          const minD = capa.minDist;
+          if (d < minD) {
+            const push = (minD - d) * 0.5;
+            dx /= d; dy /= d;
+            p.x -= dx * push; p.y -= dy * push;
+            q.x += dx * push; q.y += dy * push;
+          }
         }
       }
+      // limitar al óvalo
       for (const p of pts) {
         p.x = centroX + Math.max(-spreadX, Math.min(spreadX, p.x - centroX));
         p.y = centroY + Math.max(-spreadY, Math.min(spreadY, p.y - centroY));
@@ -207,7 +226,7 @@ function distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, bas
     }
     for (const p of pts) puntos.push({ ...p, z: capa.z, radioMul: capa.radioMul });
   });
-  puntos.sort((a,b)=> (a.z - b.z) || (a.y - b.y));
+  puntos.sort((a,b)=> (a.z - b.z) || (a.y - b.y)); // fondo→frente, arriba→abajo
   return puntos;
 }
 
@@ -233,7 +252,7 @@ function dibujarLazo(baseX, baseY) {
   ctx.restore();
 }
 
-// =================== Config (CSS-px, NO device-px) ===================
+// =================== Config con tus MEDIDAS (fracciones fijas) ===================
 const RAMO_FIJO = {
   count: 15,
   centroX: 0.40,
@@ -241,22 +260,16 @@ const RAMO_FIJO = {
   spreadX: 0.12,
   spreadY: 0.10,
   baseX:   0.40,
-  baseY:   0.70,
+  baseY:   0.60,
 };
-
-// ⚠️ Aquí usamos *CSS pixels*: getBoundingClientRect()
 function getConfigMedidasFijas() {
-  const rect = canvas.getBoundingClientRect(); // CSS-px visibles
-  const w = rect.width;
-  const h = rect.height;
-  const min = Math.min(w, h);
-
+  const w = canvas.width, h = canvas.height, min = Math.min(w, h);
   return {
     count: RAMO_FIJO.count,
     centroX: w * RAMO_FIJO.centroX,
     centroY: h * RAMO_FIJO.centroY,
-    spreadX: min * RAMO_FIJO.spreadX * 1.10,
-    spreadY: min * RAMO_FIJO.spreadY * 1.10,
+    spreadX: min * RAMO_FIJO.spreadX * 1.10, // +10% más abierto
+    spreadY: min * RAMO_FIJO.spreadY * 1.10, // +10% más abierto
     baseX:   w * RAMO_FIJO.baseX,
     baseY:   h * RAMO_FIJO.baseY,
   };
@@ -272,18 +285,18 @@ function animarRamoRamillete({
   const puntos = distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, baseX, baseY);
 
   const flores = puntos.map((p, i) => {
-    const petalos   = 6 + Math.floor(Math.random() * 5);
-    const baseRadio = 16 + Math.random() * 10;
-    const radio     = baseRadio * p.radioMul;
-    const color     = PALETA[Math.floor(Math.random() * PALETA.length)];
-    const start     = Math.floor(i * 130 + Math.random() * 100);
+    const petalos = 6 + Math.floor(Math.random() * 5);
+    const baseRadio = 16 + Math.random() * 10;  // tamaño de pétalo base
+    const radio = baseRadio * p.radioMul;
+    const color = PALETA[Math.floor(Math.random() * PALETA.length)];
+    const start = Math.floor(i * 130 + Math.random() * 100);
     return new Flor({ x: p.x, y: p.y, petalos, radio, color, baseX, baseY, start, z: p.z });
   });
 
   function loop(now) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    dibujarSombraSuelo(baseX, baseY);
-    dibujarLazo(baseX, baseY);
+    dibujarSombraSuelo(baseX, baseY); 
+    dibujarLazo(baseX, baseY);        
     let done = 0;
     for (const f of flores) if (f.draw(now, t0)) done++;
     if (done < flores.length) requestAnimationFrame(loop);
@@ -305,23 +318,23 @@ function solicitarRedibujoMedidasFijas() {
   rafRedrawTimer = requestAnimationFrame(() => animarRamoRamillete(getConfigMedidasFijas()));
 }
 
-// =================== Evento principal ===================
+// =================== Evento principal (click) ===================
 B1.addEventListener('click', () => {
   startMusic();
   loveText.style.display = 'block';
   iniciarConMedidasFijas();
 });
 
-// =================== HiDPI (render en device-px, dibujo en CSS-px) ===================
+// =================== Escalado HiDPI + Redibujo (móviles) ===================
 function resizeCanvas() {
-  const rect = canvas.getBoundingClientRect();     // tamaño visual
-  const dpr  = Math.max(1, window.devicePixelRatio || 1);
-  canvas.width  = Math.floor(rect.width  * dpr);    // buffer interno
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width = Math.floor(rect.width * dpr);
   canvas.height = Math.floor(rect.height * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);          // 1 unidad = 1 CSS-px
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 const ro = new ResizeObserver(() => {
-  resizeCanvas();
+  resizeCanvas();                 
   solicitarRedibujoMedidasFijas();
 });
 ro.observe(canvas);
