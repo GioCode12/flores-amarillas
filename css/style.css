@@ -1,11 +1,13 @@
-:root {
+:root{
   --bg1:#1b1bff; --bg2:#7a37ff; --bg3:#ff6ec7;
   --glass:rgba(255,255,255,.12);
   --card:rgba(255,255,255,.18);
   --stroke:#90ff64; --accent:#9dff00; --text:#f8fff2;
 }
 
-/* Fondo animado */
+*{box-sizing:border-box}
+html,body{height:100%}
+
 body{
   margin:0;
   font-family:'Inclusive Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
@@ -13,20 +15,19 @@ body{
   background:linear-gradient(120deg,var(--bg1),var(--bg2),var(--bg3));
   background-size:200% 200%;
   animation:bgShift 20s ease infinite;
-  min-height:100dvh;              /* alto real en Android */
+  min-height:100svh;             /* estable en Android/iOS */
   overflow-x:hidden;
-  overflow-y:auto;
   -webkit-text-size-adjust:100%;
 }
+
 @keyframes bgShift{
   0%{background-position:0% 50%}
   50%{background-position:100% 50%}
   100%{background-position:0% 50%}
 }
 
-.wrap{min-height:100dvh; display:grid; grid-template-rows:1fr auto;}
+.wrap{min-height:100svh; display:grid; grid-template-rows:1fr auto;}
 
-/* Tarjeta principal */
 .stage{
   position:relative;
   width:min(92vw,1100px);
@@ -36,20 +37,18 @@ body{
   -webkit-backdrop-filter:blur(10px);
   backdrop-filter:blur(10px);
   box-shadow:0 10px 30px rgba(0,0,0,.18);
-
-  /* espacio interno (arriba para títulos, abajo para panel sticky) */
-  padding:16px 16px 120px;
+  padding:16px 16px 120px;       /* extra para el panel */
 }
 
-/* Canvas en flujo normal (no absoluto) para no tapar nada */
 #Flor{
   display:block;
   width:100%;
-  height:clamp(260px, 48dvh, 560px); /* móvil ↔ desktop */
+  /* alto: cómodo en móvil y desktop, estable con barra de direcciones */
+  height:clamp(280px, 48svh, 580px);
   border-radius:16px;
 }
 
-/* Tipografías fluidas */
+/* Tipografía fluida */
 .title{
   text-align:center;
   margin:10px 0 0;
@@ -63,7 +62,7 @@ body{
   line-height:1.25;
 }
 
-/* Mensaje de amor debajo del canvas */
+/* Mensaje */
 .love{
   margin:14px 6px 0;
   text-align:center;
@@ -71,10 +70,10 @@ body{
   display:none;
 }
 
-/* Panel: botón + volumen */
+/* Panel sticky */
 .panel{
   position:sticky;
-  bottom:calc(max(12px, env(safe-area-inset-bottom))); /* respeta notch/safe-area */
+  bottom:calc(max(12px, env(safe-area-inset-bottom)));
   z-index:5;
   display:flex;
   justify-content:center;
@@ -104,7 +103,6 @@ body{
 .vol{ display:flex; align-items:center; gap:8px; }
 .vol input[type="range"]{ width:min(48vw,340px); }
 
-/* Pie */
 footer{
   text-align:center;
   padding:12px 8px calc(12px + env(safe-area-inset-bottom));
@@ -112,13 +110,11 @@ footer{
   opacity:.9;
 }
 
-/* Ajustes extra para pantallas muy angostas (Android pequeño) */
 @media (max-width:480px){
   .stage{ padding-bottom:130px; }
   .vol input[type="range"]{ width:56vw; }
 }
 
-/* Ajustes en desktop grande */
 @media (min-width:1024px){
   #Flor{ height:clamp(420px, 52vh, 620px); }
   .stage{ padding:20px 20px 120px; }
