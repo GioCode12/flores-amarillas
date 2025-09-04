@@ -338,6 +338,3 @@ const ro = new ResizeObserver(() => {
   solicitarRedibujoMedidasFijas();
 });
 ro.observe(canvas);
-
-
-
