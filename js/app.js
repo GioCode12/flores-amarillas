@@ -275,6 +275,7 @@ function getConfigMedidasFijas() {
   };
 }
 
+
 // =================== Animación “ramillete” ===================
 function animarRamoRamillete({
   count, centroX, centroY, spreadX, spreadY, baseX, baseY
