@@ -272,20 +272,37 @@ const RAMO_FIJO = {
     spreadY: 0.10,
 };
 
-function getConfigMedidasFijas() {
+    function getConfigMedidasFijas() {
     const w = canvas.width;
     const h = canvas.height;
     const min = Math.min(w, h);
 
-    return {
-        count: 15,
-        centroX: w * 0.4,
-        centroY: h * 0.30,
-        spreadX: min * 0.12 * 1.1,
-        spreadY: min * 0.10 * 1.1,
-        baseX: w * 0.4,
-        baseY: h * 0.70,
-    };
+    // Configuración para PC y tabletas (ancho > 768px)
+    if (w > 768) {
+        return {
+            count: 15,
+            centroX: w * 0.4, // Este valor empuja el ramo a la izquierda en PC
+            centroY: h * 0.30,
+            spreadX: min * 0.12 * 1.10,
+            spreadY: min * 0.10 * 1.10,
+            baseX: w * 0.4,
+            baseY: h * 0.70,
+        };
+    } else {
+        // Configuración para móviles (ancho <= 768px)
+        return {
+            count: 15,
+            // AJUSTA ESTOS VALORES
+            // Un valor más bajo (<0.5) moverá la flor a la izquierda.
+            // Un valor más alto (>0.5) la moverá a la derecha.
+            centroX: w * 0.2, // Empieza con 0.5 y ajústalo si es necesario
+            centroY: h * 0.3,
+            spreadX: min * 0.12 * 1.1,
+            spreadY: min * 0.10 * 1.1,
+            baseX: w * 0.3,
+            baseY: h * 0.60,
+        };
+    }
 }
 
 /* =================== Animación del ramo =================== */
@@ -402,6 +419,7 @@ B1.addEventListener('click', onReceive, {
 B1.addEventListener('touchstart', onReceive, {
     passive: true
 });
+
 
 
 
