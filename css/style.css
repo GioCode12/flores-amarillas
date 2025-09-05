@@ -1,136 +1,185 @@
-:root{
-  --bg1:#1b1bff; --bg2:#7a37ff; --bg3:#ff6ec7;
-  --glass:rgba(255,255,255,.12);
-  --card:rgba(255,255,255,.18);
-  --stroke:#90ff64; --accent:#9dff00; --text:#f8fff2;
+:root {
+    --bg1: #1b1bff;
+    --bg2: #7a37ff;
+    --bg3: #ff6ec7;
+    --glass: rgba(255, 255, 255, .12);
+    --card: rgba(255, 255, 255, .18);
+    --stroke: #90ff64;
+    --accent: #9dff00;
+    --text: #f8fff2;
 }
 
-*{box-sizing:border-box}
-html,body{height:100%}
-
-body{
-  margin:0;
-  font-family:'Inclusive Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  color:var(--text);
-  background:linear-gradient(120deg,var(--bg1),var(--bg2),var(--bg3));
-  background-size:200% 200%;
-  animation:bgShift 20s ease infinite;
-  min-height:100svh;
-  overflow-x:hidden;
-  -webkit-text-size-adjust:100%;
+* {
+    box-sizing: border-box
 }
 
-@keyframes bgShift{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
+html,
+body {
+    height: 100%
 }
 
-.wrap{min-height:100svh; display:grid; grid-template-rows:1fr auto;}
+body {
+    margin: 0;
+    font-family: 'Inclusive Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color: var(--text);
+    background: linear-gradient(120deg, var(--bg1), var(--bg2), var(--bg3));
+    background-size: 200% 200%;
+    animation: bgShift 20s ease infinite;
+    min-height: 100svh;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    display: flex;
+    flex-direction: column;
+}
 
-.stage{
-  position:relative;
-  width:min(92vw,1100px);
-  margin:16px auto;
-  border-radius:24px;
-  background:var(--glass);
-  -webkit-backdrop-filter:blur(10px);
-  backdrop-filter:blur(10px);
-  box-shadow:0 10px 30px rgba(0,0,0,.18);
-  padding:16px 16px 24px; /* panel ya no tapa, lo medimos en JS */
+@keyframes bgShift {
+    0% {
+        background-position: 0% 50%
+    }
+    50% {
+        background-position: 100% 50%
+    }
+    100% {
+        background-position: 0% 50%
+    }
+}
+
+.wrap {
+    min-height: 100svh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+}
+
+.stage {
+    position: relative;
+    width: min(92vw, 1100px);
+    margin: 16px auto;
+    border-radius: 24px;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+    padding: 16px 16px 24px;
+    display: grid; /* Usar grid para un layout más robusto */
+    grid-template-rows: auto auto 1fr auto auto; /* Títulos, canvas, panel, loveText */
+    gap: 8px; /* Espaciado entre elementos */
+    flex-grow: 1; /* Para que ocupe el espacio disponible en altura */
+    align-items: center; /* Centrado vertical para los elementos en la grilla */
+    justify-items: center; /* Centrado horizontal para los elementos en la grilla */
 }
 
 /* Títulos */
+.title, .subtitle, .love {
+    width: 100%; /* Para que los títulos ocupen todo el ancho y el centrado funcione bien */
+    text-align: center;
+}
 .title{
-  text-align:center;
-  margin:10px 0 0;
-  font-size:clamp(28px, 8vw, 72px);
-  line-height:1.1;
+    margin: 10px 0 0;
+    font-size: clamp(28px, 8vw, 72px);
+    line-height: 1.1;
 }
 .subtitle{
-  text-align:center;
-  margin:12px 0 14px;
-  font-size:clamp(16px, 4.8vw, 34px);
-  line-height:1.25;
+    margin: 12px 0 14px;
+    font-size: clamp(16px, 4.8vw, 34px);
+    line-height: 1.25;
 }
 
-/* Panel pegado al fondo de la tarjeta, no tapa nada */
-.panel{
-  position:sticky;
-  bottom:calc(12px + env(safe-area-inset-bottom));
-  z-index:5;
-  display:flex;
-  justify-content:center;
-  width:100%;
-  margin-top:16px;
+/* Panel pegado al fondo de la tarjeta */
+.panel {
+    position: sticky;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 5;
+    width: 100%;
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
 }
 
-.panel-inner{
-  display:flex; align-items:center; gap:12px;
-  background:var(--card);
-  padding:10px 14px;
-  border-radius:16px;
-  box-shadow:0 6px 18px rgba(0,0,0,.14);
+.panel-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    padding: 10px 14px;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .14);
 }
 
-.btn{
-  border:2px solid var(--stroke);
-  background:#c7ffa1;
-  padding:10px 16px;
-  border-radius:14px;
-  cursor:pointer;
-  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size:clamp(14px, 3.8vw, 20px);
-  transition:.2s;
-}
-.btn:hover{ background:#fff; transform:translateY(-1px); }
-
-.vol{ display:flex; align-items:center; gap:8px; }
-.vol input[type="range"]{ width:min(48vw,340px); }
-
-/* Marco para centrar el canvas (horizontal y vertical) */
-.canvas-frame{
-  position:relative;
-  width:100%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:clamp(320px, 52svh, 640px);
+.btn {
+    border: 2px solid var(--stroke);
+    background: #c7ffa1;
+    padding: 10px 16px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: clamp(14px, 3.8vw, 20px);
+    transition: .2s;
 }
 
-#Flor{
-  display:block;
-  width:100%;
-  max-width:100%;
-  min-height:320px;
-  height:clamp(320px, 52svh, 640px);
-  border-radius:16px;
-  touch-action:manipulation;
-  background:transparent;
+.btn:hover {
+    background: #fff;
+    transform: translateY(-1px);
 }
-@supports (height: 1svh){
-  #Flor{ height:clamp(320px, 52svh, 640px); }
+
+.vol {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vol input[type="range"] {
+    width: min(48vw, 340px);
+}
+
+/* Centrado del Canvas */
+.canvas-frame {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1; /* Ocupa el espacio restante en el grid */
+    width: 100%;
+    min-height: 200px; /* Altura mínima para el canvas */
+}
+
+#Flor {
+    display: block;
+    width: 100%; /* Ocupa todo el ancho de su contenedor */
+    max-width: 100%;
+    height: 100%; /* Ocupa toda la altura de su contenedor */
+    max-height: 60vh; /* Limita la altura máxima del canvas para que no sea demasiado grande */
+    border-radius: 16px;
+    touch-action: manipulation;
+    background: transparent;
 }
 
 /* Mensaje */
-.love{
-  margin:14px 6px 0;
-  text-align:center;
-  font-size:clamp(16px, 5.2vw, 32px);
-  display:none;
+.love {
+    margin: 14px 6px 0;
+    font-size: clamp(16px, 5.2vw, 32px);
+    display: none;
 }
 
-footer{
-  text-align:center;
-  padding:12px 8px calc(12px + env(safe-area-inset-bottom));
-  font-size:clamp(12px, 3.4vw, 14px);
-  opacity:.9;
+footer {
+    text-align: center;
+    padding: 12px 8px calc(12px + env(safe-area-inset-bottom));
+    font-size: clamp(12px, 3.4vw, 14px);
+    opacity: .9;
 }
 
 /* Microajustes */
-@media (max-width:480px){
-  .panel{ top:8px; }
+@media (max-width:480px) {
+    .panel {
+        position: static;
+        margin-top: 16px; /* Ajusta el margen si es necesario */
+    }
+}
+
+@media (min-width:1024px) {
+    .stage {
+        padding: 20px;
+    }
 }
 @media (min-width:1024px){
   .stage{ padding:20px; }
 }
+
