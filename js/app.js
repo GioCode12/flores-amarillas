@@ -290,14 +290,14 @@ function getConfigMedidasFijas() {
     };
     } else {
         // En móviles, ajustamos las coordenadas para que se vean centradas.
-        return {
-            count: 15,
-            centroX: w * 0.5,
-            centroY: h * 0.4,
-            spreadX: min * 0.12 * 1.1,
-            spreadY: min * 0.10 * 1.1,
-            baseX: w * 0.5,
-            baseY: h * 0.75,
+       return {
+        count: 15,
+        centroX: w * centroHorizontal,
+        centroY: h * 0.45,
+        spreadX: min * 0.12 * 1.1,
+        spreadY: min * 0.10 * 1.1,
+        baseX: w * centroHorizontal,
+        baseY: h * 0.75,
         };
     }
 }
@@ -416,5 +416,6 @@ B1.addEventListener('click', onReceive, {
 B1.addEventListener('touchstart', onReceive, {
     passive: true
 });
+
 
 
