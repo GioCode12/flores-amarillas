@@ -277,15 +277,15 @@ function getConfigMedidasFijas() {
         h = canvas.height;
     const min = Math.min(w, h);
 
-    return {
-        count: RAMO_FIJO.count,
-        centroX: w * 0.40, // Centrado horizontal
-        centroY: h * 0.40, // Centrado vertical
-        spreadX: min * RAMO_FIJO.spreadX * 1.10,
-        spreadY: min * RAMO_FIJO.spreadY * 1.10,
-        baseX: w * 0.40,
-        baseY: h * 0.70, // Base del ramo (relativo al canvas)
-    };
+   return {
+        count: RAMO_FIJO.count,
+        centroX: w * 0.4, // Centrado horizontal
+        centroY: h * 0.30, // Centrado vertical (ajustado para que se vea más arriba)
+        spreadX: min * RAMO_FIJO.spreadX * 1.10,
+        spreadY: min * RAMO_FIJO.spreadY * 1.10,
+        baseX: w * 0.4, // Base del ramo horizontal
+        baseY: h * 0.70, // Base del ramo vertical (a 75% del alto)
+    };
 }
 
 /* =================== Animación del ramo =================== */
@@ -402,3 +402,4 @@ B1.addEventListener('click', onReceive, {
 B1.addEventListener('touchstart', onReceive, {
     passive: true
 });
+
