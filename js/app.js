@@ -273,11 +273,13 @@ const RAMO_FIJO = {
 };
 
 function getConfigMedidasFijas() {
-    const w = canvas.width,
-        h = canvas.height;
+    const w = canvas.width;
+    const h = canvas.height;
     const min = Math.min(w, h);
 
-   return {
+    // Si el ancho del canvas es mayor a 768px (tamaño de tableta), usamos la configuración de PC.
+    if (w > 768) {
+        return {
         count: RAMO_FIJO.count,
         centroX: w * 0.4, // Centrado horizontal
         centroY: h * 0.30, // Centrado vertical (ajustado para que se vea más arriba)
@@ -286,6 +288,18 @@ function getConfigMedidasFijas() {
         baseX: w * 0.4, // Base del ramo horizontal
         baseY: h * 0.70, // Base del ramo vertical (a 75% del alto)
     };
+    } else {
+        // En móviles, ajustamos las coordenadas para que se vean centradas.
+        return {
+            count: 15,
+            centroX: w * 0.5,
+            centroY: h * 0.4,
+            spreadX: min * 0.12 * 1.1,
+            spreadY: min * 0.10 * 1.1,
+            baseX: w * 0.5,
+            baseY: h * 0.75,
+        };
+    }
 }
 
 /* =================== Animación del ramo =================== */
@@ -402,4 +416,5 @@ B1.addEventListener('click', onReceive, {
 B1.addEventListener('touchstart', onReceive, {
     passive: true
 });
+
 
