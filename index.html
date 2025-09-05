@@ -3,51 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Flores Amarillas <3</title>
+  <title>Flores Amarillas 💛</title>
+
+  <!-- Fuente -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:wght@400;700&family=Great+Vibes&display=swap" rel="stylesheet">
+
+  <!-- Meta para Android (color de la barra) -->
+  <meta name="theme-color" content="#7a37ff" />
+
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inclusive+Sans&family=Great+Vibes&display=swap" rel="stylesheet" />
 </head>
 <body>
   <div class="wrap">
     <main>
-      <section class="stage">
+      <section class="stage" aria-label="Escenario de flores">
         <h1 class="title" id="Titulo">Para Kim</h1>
         <h2 class="subtitle" id="Sub">Unas flores amarillas para iluminar tu día</h2>
 
-        <canvas id="Flor"></canvas>
+<canvas id="Flor"></canvas>
 
-        <div class="panel">
-          <div class="panel-inner">
-            <button class="btn" id="B1">Recibir flores</button>
-            <div class="vol">
-              <span>🔊</span>
-              <input id="vol" type="range" min="0" max="1" step="0.01" value="0.7" />
-            </div>
-          </div>
+<div class="love" id="loveText">Para Kim, la niña más linda del mundo 💛</div>
+
+
+    <div class="panel">
+      <div class="panel-inner">
+        <button class="btn" id="B1">Recibir flores</button>
+        <div class="vol">
+          <span>🔊</span>
+          <input id="vol" type="range" min="0" max="1" step="0.01" value="0.7" />
+        </div>
+      </div>
+    </div>
+
+        <!-- Canvas centrado y con zona segura inferior calculada en JS -->
+        <div class="canvas-frame">
+          <canvas id="Flor" aria-label="Lienzo de flores"></canvas>
         </div>
 
-        <div class="love" id="loveText">Para Kim, la niña más linda del mundo 💛</div>
+        <div class="love" id="loveText" role="status" aria-live="polite">
+          Para Kim, la niña más linda del mundo 💛
+        </div>
       </section>
     </main>
 
     <footer>Hecho con 💛 del inge para ti</footer>
   </div>
-
+  
   <!-- Música -->
   <audio id="bgm" preload="auto" loop playsinline>
     <source src="Floricienta-Flores-Amarillas-_Audio_.mp3" type="audio/mpeg" />
   </audio>
-  <script defer src="js/app.js"></script>
+  
+ <script defer src="js/app.js"></script>
   <script>
-    // Primer reflow al cargar (importante para GitHub Pages y Android)
+    // Primer ajuste al cargar (importante para Android + Pages)
     window.addEventListener('load', () => {
       window.dispatchEvent(new Event('resize'));
     });
   </script>
 </body>
 </html>
+
 
 
 
