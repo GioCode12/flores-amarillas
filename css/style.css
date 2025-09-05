@@ -15,7 +15,7 @@ body{
   background:linear-gradient(120deg,var(--bg1),var(--bg2),var(--bg3));
   background-size:200% 200%;
   animation:bgShift 20s ease infinite;
-  min-height:100svh;             
+  min-height:100svh;
   overflow-x:hidden;
   -webkit-text-size-adjust:100%;
 }
@@ -37,23 +37,10 @@ body{
   -webkit-backdrop-filter:blur(10px);
   backdrop-filter:blur(10px);
   box-shadow:0 10px 30px rgba(0,0,0,.18);
-  padding:16px 16px 120px;      
+  padding:16px 16px 24px; /* panel ya no tapa, lo medimos en JS */
 }
 
-/* Altura del canvas con fallback a vh si svh no existe */
-#Flor{
-  display:block;
-  width:100%;
-  min-height: 300px;
-  height:clamp(280px, 48vh, 580px);   
-  border-radius:16px;
-  touch-action: manipulation;         
-}
-@supports (height: 1svh){
-  #Flor{ height:clamp(280px, 48svh, 580px); }  /* estable con barra de direcciones */
-}
-
-/* Tipografía fluida */
+/* Títulos */
 .title{
   text-align:center;
   margin:10px 0 0;
@@ -62,29 +49,22 @@ body{
 }
 .subtitle{
   text-align:center;
-  margin:18px 0 14px;
+  margin:12px 0 14px;
   font-size:clamp(16px, 4.8vw, 34px);
   line-height:1.25;
 }
 
-/* Mensaje */
-.love{
-  margin:14px 6px 0;
-  text-align:center;
-  font-size:clamp(16px, 5.2vw, 32px);
-  display:none;
-}
-
-/* Panel sticky */
+/* Panel pegado al fondo de la tarjeta, no tapa nada */
 .panel{
   position:sticky;
-  bottom:calc(max(12px, env(safe-area-inset-bottom)));
+  bottom:calc(12px + env(safe-area-inset-bottom));
   z-index:5;
   display:flex;
   justify-content:center;
   width:100%;
   margin-top:16px;
 }
+
 .panel-inner{
   display:flex; align-items:center; gap:12px;
   background:var(--card);
@@ -108,6 +88,38 @@ body{
 .vol{ display:flex; align-items:center; gap:8px; }
 .vol input[type="range"]{ width:min(48vw,340px); }
 
+/* Marco para centrar el canvas (horizontal y vertical) */
+.canvas-frame{
+  position:relative;
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:clamp(320px, 52svh, 640px);
+}
+
+#Flor{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-height:320px;
+  height:clamp(320px, 52svh, 640px);
+  border-radius:16px;
+  touch-action:manipulation;
+  background:transparent;
+}
+@supports (height: 1svh){
+  #Flor{ height:clamp(320px, 52svh, 640px); }
+}
+
+/* Mensaje */
+.love{
+  margin:14px 6px 0;
+  text-align:center;
+  font-size:clamp(16px, 5.2vw, 32px);
+  display:none;
+}
+
 footer{
   text-align:center;
   padding:12px 8px calc(12px + env(safe-area-inset-bottom));
@@ -115,11 +127,10 @@ footer{
   opacity:.9;
 }
 
+/* Microajustes */
 @media (max-width:480px){
-  .stage{ padding-bottom: max(130px, calc(100px + env(safe-area-inset-bottom))); }
+  .panel{ top:8px; }
 }
-
 @media (min-width:1024px){
-  #Flor{ height:clamp(420px, 52vh, 620px); }
-  .stage{ padding:20px 20px 120px; }
+  .stage{ padding:20px; }
 }
