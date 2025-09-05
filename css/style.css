@@ -60,31 +60,34 @@ body {
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
     padding: 16px 16px 24px;
-    display: grid; /* Usar grid para un layout más robusto */
-    grid-template-rows: auto auto 1fr auto auto; /* Títulos, canvas, panel, loveText */
-    gap: 8px; /* Espaciado entre elementos */
-    flex-grow: 1; /* Para que ocupe el espacio disponible en altura */
-    align-items: center; /* Centrado vertical para los elementos en la grilla */
-    justify-items: center; /* Centrado horizontal para los elementos en la grilla */
+    display: grid;
+    grid-template-rows: auto auto 1fr auto auto;
+    gap: 8px;
+    flex-grow: 1;
+    align-items: center;
+    justify-items: center;
 }
 
-/* Títulos */
-.title, .subtitle, .love {
-    width: 100%; /* Para que los títulos ocupen todo el ancho y el centrado funcione bien */
+.title,
+.subtitle,
+.love {
+    width: 100%;
     text-align: center;
 }
-.title{
+
+.title {
     margin: 10px 0 0;
     font-size: clamp(28px, 8vw, 72px);
     line-height: 1.1;
 }
-.subtitle{
+
+.subtitle {
+    text-align: center;
     margin: 12px 0 14px;
     font-size: clamp(16px, 4.8vw, 34px);
     line-height: 1.25;
 }
 
-/* Panel pegado al fondo de la tarjeta */
 .panel {
     position: sticky;
     bottom: calc(12px + env(safe-area-inset-bottom));
@@ -136,23 +139,22 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-grow: 1; /* Ocupa el espacio restante en el grid */
+    flex-grow: 1; 
     width: 100%;
-    min-height: 200px; /* Altura mínima para el canvas */
+    min-height: 200px;
 }
 
 #Flor {
     display: block;
-    width: 100%; /* Ocupa todo el ancho de su contenedor */
-    max-width: 100%;
-    height: 100%; /* Ocupa toda la altura de su contenedor */
-    max-height: 60vh; /* Limita la altura máxima del canvas para que no sea demasiado grande */
+    width: 100%;
+    max-width: 500px; 
+    height: 100%;
+    max-height: 500px; 
     border-radius: 16px;
     touch-action: manipulation;
     background: transparent;
 }
 
-/* Mensaje */
 .love {
     margin: 14px 6px 0;
     font-size: clamp(16px, 5.2vw, 32px);
@@ -166,11 +168,9 @@ footer {
     opacity: .9;
 }
 
-/* Microajustes */
 @media (max-width:480px) {
     .panel {
         position: static;
-        margin-top: 16px; /* Ajusta el margen si es necesario */
     }
 }
 
@@ -179,7 +179,3 @@ footer {
         padding: 20px;
     }
 }
-@media (min-width:1024px){
-  .stage{ padding:20px; }
-}
-
