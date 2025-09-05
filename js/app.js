@@ -4,8 +4,9 @@ const B1      = document.getElementById('B1');
 const loveText= document.getElementById('loveText');
 const bgm     = document.getElementById('bgm');
 const vol     = document.getElementById('vol');
+const panel   = document.getElementById('panel');
 
-// =================== Música ===================
+/* =================== MÚSICA =================== */
 vol.addEventListener('input', () => {
   bgm.volume = parseFloat(vol.value || '0.7');
 });
@@ -16,13 +17,21 @@ async function startMusic() {
   } catch {}
 }
 
-// =================== Parámetros visuales ===================
-// Separación radial de pétalos (más alto = más separados)
+/* =================== CONTROLES DE POSICIÓN (PUNTO ÚNICO) =================== */
+const POS = {
+  fracX:   0.48,   // ← 0.48 lo mueve un poco a la IZQUIERDA, 0.52 a la DERECHA
+  fracY:   0.50,   // ← 0.48 lo sube, 0.52 lo baja
+  offsetX: -90,    // ← píxeles. PRUÉBALO en -90 para compensar lo que ves a la derecha
+  offsetY: -6,     // ← píxeles. Ajuste fino vertical (opcional)
+  baseGap: 0.32    // qué tan abajo queda la base respecto al centro
+};
+
+
+/* =================== PARÁMETROS VISUALES =================== */
 const PETAL_OFFSET_MUL = 0.58;
-// Altura de pétalos (2 = más largos)
 const PETAL_SCALE_Y = 1.9;
 
-// =================== Utilidades de dibujo ===================
+/* =================== UTILIDADES DE DIBUJO =================== */
 function dibujarPetalo(x, y, radioX, escalaY, rot, color, prog, offset = 0) {
   const pasos = 100;
   const hasta = Math.floor(pasos * prog);
@@ -34,7 +43,6 @@ function dibujarPetalo(x, y, radioX, escalaY, rot, color, prog, offset = 0) {
   ctx.translate(offset, 0);
   ctx.scale(1, escalaY);
 
-  // Glow sutil
   ctx.shadowColor = color;
   ctx.shadowBlur = 6;
 
@@ -55,7 +63,6 @@ function dibujarPetalo(x, y, radioX, escalaY, rot, color, prog, offset = 0) {
   ctx.restore();
 }
 
-// Tallo que converge al amarre (retorna la punta del tallo)
 function dibujarTalloConvergente(x, y, baseX, baseY, t, grosor = 3, color = '#113b11') {
   const ex = x + (baseX - x) * t;
   const ey = y + (baseY - y) * t;
@@ -70,14 +77,12 @@ function dibujarTalloConvergente(x, y, baseX, baseY, t, grosor = 3, color = '#11
   return { ex, ey };
 }
 
-// Par de hojas sobre el tallo (crecen con hojaT en [0..1])
 function dibujarParDeHojas(x, y, ex, ey, hojaT) {
   const hx  = x + (ex - x) * 0.4,  hy  = y + (ey - y) * 0.4;
   const hx2 = x + (ex - x) * 0.65, hy2 = y + (ey - y) * 0.65;
   dibujarPetalo(hx  + 18 * hojaT, hy,  14, 2, Math.PI * 1.05, '#2ecc71', hojaT);
   dibujarPetalo(hx2 - 18 * hojaT, hy2, 14, 2, Math.PI * 0.05, '#2ecc71', hojaT);
 }
-
 function dibujarCentro(x, y) {
   const g = ctx.createRadialGradient(x - 3, y - 3, 2, x, y, 12);
   g.addColorStop(0, '#fffbe9');
@@ -89,7 +94,6 @@ function dibujarCentro(x, y) {
   ctx.strokeStyle = 'rgba(255,226,122,0.85)';
   ctx.stroke();
 }
-
 function dibujarSombraSuelo(baseX, baseY) {
   ctx.save();
   ctx.globalAlpha = 0.25;
@@ -101,12 +105,11 @@ function dibujarSombraSuelo(baseX, baseY) {
   ctx.restore();
 }
 
-// =================== Motor de animación ===================
+/* =================== MOTOR DE ANIMACIÓN =================== */
 const DUR_TALLO = 1200;
 const DUR_PET   = 700;
 const PALETA    = ['#ffdb27', '#ffd000', '#ffe27a', '#f7c948', '#f4d35e'];
 
-// Presupuesto global de hojas (pares) por ramo
 let hojasPairsRestantes = 0;
 
 class Flor {
@@ -114,41 +117,28 @@ class Flor {
     this.x = x; this.y = y; this.baseX = baseX; this.baseY = baseY;
     this.petalos = petalos; this.radio = radio; this.color = color;
     this.start = start; this.z = z;
-
-    // Variaciones estéticas
-    this.grosor = 2 + Math.random() * 2; 
+    this.grosor = 2 + Math.random() * 2;
     this.petalOffset = this.radio * PETAL_OFFSET_MUL;
     this.rotJitter = Array.from({ length: this.petalos }, () => (Math.random() - 0.5) * 0.25);
-
     this.tieneHojas = false;
   }
-
   draw(now, t0) {
     const t = now - t0 - this.start;
-
-    // Progreso del tallo
     const kt = Math.max(0, Math.min(1, t / DUR_TALLO));
 
-    // Tallo (y punta para colocar hojas)
     let ex, ey;
     if (kt > 0) {
       const tip = dibujarTalloConvergente(this.x, this.y, this.baseX, this.baseY, kt, this.grosor, '#0f3b12');
       ex = tip.ex; ey = tip.ey;
-
-      // Reclamar hojas si hay cupo
       if (kt > 0.6 && !this.tieneHojas && hojasPairsRestantes > 0) {
         this.tieneHojas = true;
         hojasPairsRestantes--;
       }
     }
-
-    // Hojas visibles mientras la flor "tenga hojas"
     if (this.tieneHojas && ex !== undefined) {
       const hojaT = kt > 0.6 ? Math.min(1, (kt - 0.6) / 0.4) : 0;
       dibujarParDeHojas(this.x, this.y, ex, ey, hojaT);
     }
-
-    // Pétalos en cascada — con separación radial y jitter de rotación
     const angStep = (Math.PI * 2) / this.petalos;
     for (let i = 0; i < this.petalos; i++) {
       const startPet = DUR_TALLO + i * DUR_PET;
@@ -159,14 +149,12 @@ class Flor {
         dibujarPetalo(this.x, this.y, this.radio, PETAL_SCALE_Y, rot, this.color, prog, this.petalOffset);
       }
     }
-
     if (t >= 0) dibujarCentro(this.x, this.y);
-
     return t >= DUR_TALLO + this.petalos * DUR_PET + 200;
   }
 }
 
-// =================== Distribución anti-empalme (capas) ===================
+/* =================== DISTRIBUCIÓN =================== */
 function distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, baseX, baseY) {
   const capas = [
     { frac: 0.35, radioMul: 0.85, minDist: 48, z: 0 },
@@ -187,16 +175,18 @@ function distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, bas
       const r = Math.sqrt(Math.random());
       const x0 = centroX + (a * r) * spreadX;
       let y0 = centroY + (b * r) * spreadY;
-      if (y0 > centroY) y0 = centroY + (y0 - centroY) * 0.6; // base más plana
+      if (y0 > centroY) y0 = centroY + (y0 - centroY) * 0.6;
 
-      // inclinación hacia el amarre
+      // menos sesgo hacia la base (simetría)
       const dx = baseX - x0, dy = baseY - y0;
       const mag = Math.hypot(dx, dy) || 1;
-      const tilt = 0.08;
+      const tilt = 0.03; // 0 si quieres total simetría
       const x = x0 + (dx / mag) * spreadX * tilt;
       const y = y0 + (dy / mag) * spreadY * tilt;
+
       pts.push({ x, y });
     }
+
     // relajación por repulsión
     const iter = 10;
     for (let it = 0; it < iter; it++) {
@@ -222,7 +212,7 @@ function distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, bas
     }
     for (const p of pts) puntos.push({ ...p, z: capa.z, radioMul: capa.radioMul });
   });
-  puntos.sort((a,b)=> (a.z - b.z) || (a.y - b.y)); 
+  puntos.sort((a,b)=> (a.z - b.z) || (a.y - b.y));
   return puntos;
 }
 
@@ -248,42 +238,72 @@ function dibujarLazo(baseX, baseY) {
   ctx.restore();
 }
 
-// =================== Config con tus MEDIDAS (fracciones fijas) ===================
+/* =================== CONFIG: CENTRADO + ZONA SEGURA =================== */
 const RAMO_FIJO = {
   count: 15,
-  centroX: 0.40,
-  centroY: 0.40,
   spreadX: 0.12,
   spreadY: 0.10,
-  baseX:   0.40,
-  baseY:   0.70,
 };
-function getConfigMedidasFijas() {
-  const w = canvas.width, h = canvas.height, min = Math.min(w, h);
 
-  // Detectar móvil
-  const isMobile = window.matchMedia("(max-width: 600px)").matches;
+/* Altura del panel (para no tapar el canvas) */
+function getPanelSafeBottom() {
+  const rect = panel?.getBoundingClientRect?.();
+  const h = rect?.height || 0;
+  return Math.ceil(h + 16);
+}
+
+function getConfigMedidasFijas() {
+  const w = canvas.width, h = canvas.height;
+  const min = Math.min(w, h);
+
+  const safeBottom = getPanelSafeBottom();
+  const usableH = Math.max(200, h - safeBottom);
+
+  const fracX   = (typeof POS?.fracX   === 'number' ? POS.fracX   : 0.5);
+  const fracY   = (typeof POS?.fracY   === 'number' ? POS.fracY   : 0.5);
+  const offsetX = (typeof POS?.offsetX === 'number' ? POS.offsetX : 0);
+  const offsetY = (typeof POS?.offsetY === 'number' ? POS.offsetY : 0);
+  const baseGap = (typeof POS?.baseGap === 'number' ? POS.baseGap : 0.32);
+
+  const centroX = w * fracX + offsetX;
+  const centroY = usableH * fracY + offsetY;
+
+  const baseX = centroX;
+  const baseY = Math.min(centroY + usableH * baseGap, usableH - 24);
 
   return {
     count: RAMO_FIJO.count,
-    centroX: w * 0.50,                   // centrado en ancho
-    centroY: h * (isMobile ? 0.30 : 0.42), // más arriba en móvil
+    centroX,
+    centroY,
     spreadX: min * RAMO_FIJO.spreadX * 1.10,
     spreadY: min * RAMO_FIJO.spreadY * 1.10,
-    baseX:   w * 0.50,
-    baseY:   h * (isMobile ? 0.60 : 0.72), // más arriba en móvil
+    baseX,
+    baseY
   };
 }
 
+/* =================== AJUSTE FINO: CENTRO DE MASA =================== */
+function recentrarRamo(puntos, targetX, targetY, ajusteY = -6) {
+  const n = puntos.length || 1;
+  const cx = puntos.reduce((a,p)=>a+p.x,0) / n;
+  const cy = puntos.reduce((a,p)=>a+p.y,0) / n;
+  const dx = targetX - cx;
+  const dy = (targetY + ajusteY) - cy; // compensa sombra+lazo
+  for (const p of puntos) { p.x += dx; p.y += dy; }
+  return puntos;
+}
 
-// =================== Animación “ramillete” ===================
+/* =================== ANIMACIÓN DEL RAMO =================== */
 function animarRamoRamillete({
   count, centroX, centroY, spreadX, spreadY, baseX, baseY
 } = getConfigMedidasFijas()) {
   hojasPairsRestantes = 4;
-
   const t0 = performance.now();
+
   const puntos = distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, baseX, baseY);
+
+  // Centrado exacto del ramo
+  recentrarRamo(puntos, centroX, centroY);
 
   const flores = puntos.map((p, i) => {
     const petalos = 6 + Math.floor(Math.random() * 5);
@@ -305,24 +325,7 @@ function animarRamoRamillete({
   requestAnimationFrame(loop);
 }
 
-// =================== Estado/redibujo ===================
-let ramoIniciado = false;
-let rafRedrawTimer = null;
-
-function iniciarConMedidasFijas() {
-  ensureSized(); // <-- asegura tamaño real ANTES de animar (clave en Android)
-  animarRamoRamillete(getConfigMedidasFijas());
-  ramoIniciado = true;
-}
-function solicitarRedibujoMedidasFijas() {
-  if (!ramoIniciado) return;
-  if (rafRedrawTimer) cancelAnimationFrame(rafRedrawTimer);
-  rafRedrawTimer = requestAnimationFrame(() =>
-    animarRamoRamillete(getConfigMedidasFijas())
-  );
-}
-
-// =================== Escalado HiDPI + Redibujo ===================
+/* =================== SIZING HIDPI =================== */
 function resizeCanvas() {
   const rect = canvas.getBoundingClientRect();
   const dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -331,7 +334,6 @@ function resizeCanvas() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
-// Fuerza medidas si rect() da 0 (algunos Android en primer tap)
 function ensureSized() {
   resizeCanvas();
   if (canvas.width < 10 || canvas.height < 10) {
@@ -344,17 +346,32 @@ function ensureSized() {
   }
 }
 
+let ramoIniciado = false;
+let rafRedrawTimer = null;
+
+function iniciarConMedidasFijas() {
+  ensureSized();
+  animarRamoRamillete(getConfigMedidasFijas());
+  ramoIniciado = true;
+}
+function solicitarRedibujoMedidasFijas() {
+  if (!ramoIniciado) return;
+  if (rafRedrawTimer) cancelAnimationFrame(rafRedrawTimer);
+  rafRedrawTimer = requestAnimationFrame(() =>
+    animarRamoRamillete(getConfigMedidasFijas())
+  );
+}
+
+/* OBSERVERS/EVENTOS */
 const ro = new ResizeObserver(() => {
   resizeCanvas();
   solicitarRedibujoMedidasFijas();
 });
 ro.observe(canvas);
 
-// Primer dimensionado en todas las rutas de carga/volver de caché
 window.addEventListener('load', ensureSized);
 window.addEventListener('pageshow', ensureSized);
 
-// Si cambia el DPR (rotación/zoom), re-dimensiona y re-dibuja
 let lastDPR = window.devicePixelRatio;
 setInterval(() => {
   if (window.devicePixelRatio !== lastDPR) {
@@ -364,7 +381,7 @@ setInterval(() => {
   }
 }, 500);
 
-// =================== Evento principal (click/touch) ===================
+/* =================== INTERACCIÓN =================== */
 function onReceive() {
   startMusic();
   loveText.style.display = 'block';
