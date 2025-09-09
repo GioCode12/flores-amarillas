@@ -274,7 +274,7 @@ function getConfigMedidasFijas() {
   }
 
   return { count: 15, centroX, centroY, spreadX, spreadY, baseX, baseY };
-
+}
 
 /* =================== Animación del ramo =================== */
 function animarRamoRamillete(config = getConfigMedidasFijas()) {
@@ -375,4 +375,3 @@ function onReceive() {
 }
 B1.addEventListener('click', onReceive, { passive: true });
 B1.addEventListener('touchstart', onReceive, { passive: true });
-
