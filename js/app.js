@@ -245,37 +245,23 @@ function dibujarLazo(baseX, baseY) {
   ctx.restore();
 }
 
-/* =================== Config: centrado + zona segura =================== */
-/* =================== Config: centrado + zona segura =================== */
-function getConfigMedidasFijas() {
-  const w = canvas.width;
-  const h = canvas.height;
-  const min = Math.min(w, h);
-  const ar = w / Math.max(1, h);
+  // ===== Layout / Config =====
+  function getConfigMedidasFijas(){
+    const w=canvas.width, h=canvas.height, min=Math.min(w,h);
+    const ar=w/Math.max(1,h);
+    let centroX=w*0.40, centroY=h*0.32, baseX=w*0.40, baseY=h*0.60;
+    let spreadX=min*0.25*1, spreadY=min*0.22*.80, tilt=0.03;
 
-  // valores base (PC/Tablet)
-  let centroX = w * 0.40;
-  let centroY = h * 0.32;
-  let baseX   = w * 0.40;
-  let baseY   = h * 0.70;
-  let spreadX = min * 0.12 * 1.10;
-  let spreadY = min * 0.10 * 1.10;
-
-  if (w <= 768) {
-    // móviles
-    centroX = w * 0.50;
-    baseX   = w * 0.50;
-    centroY = h * 0.34;
-    baseY   = h * 0.66;
-
-    if (ar < 0.6) spreadX *= 0.9;
-  } else if (w >= 1280) {
-    spreadX *= 1.05;
-    spreadY *= 1.05;
+    if(w<=768){
+      centroX=w*0.32; baseX=w*0.32;  // leve sesgo a la izquierda en móvil
+      centroY=h*0.25; baseY=h*0.50;
+      tilt=0.015;                     // menos empuje hacia la base
+      if(ar<0.6) spreadX*=0.9;
+    } else if (w>=1280){
+      spreadX*=1.05; spreadY*=1.05;
+    }
+    return {count:12, centroX, centroY, spreadX, spreadY, baseX, baseY, tilt};
   }
-
-  return { count: 15, centroX, centroY, spreadX, spreadY, baseX, baseY };
-}
 
 /* =================== Animación del ramo =================== */
 function animarRamoRamillete(config = getConfigMedidasFijas()) {
@@ -376,4 +362,5 @@ function onReceive() {
 }
 B1.addEventListener('click', onReceive, { passive: true });
 B1.addEventListener('touchstart', onReceive, { passive: true });
+
 
