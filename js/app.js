@@ -17,7 +17,7 @@ vol.addEventListener('input', () => {
   bgm.volume = Math.max(0, Math.min(1, v));
 });
 
-// --- FIX ANDROID: reproducir SIN await y con reintentos en el MISMO gesto ---
+// --- FIX ANDROID/iOS: reproducir en el MISMO gesto + reintentos ---
 let audioUnlocked = false;
 let audioCtx = null;
 
@@ -25,35 +25,48 @@ function tryPlayBgmInline() {
   // volumen seguro
   const v = Number.isFinite(+vol.value) ? +vol.value : 0.7;
   bgm.volume = Math.max(0, Math.min(1, v));
+  bgm.muted = false; // por si algún navegador lo trae en true
 
   // algunos Android requieren load() antes
   if (bgm.readyState < 2) {
     try { bgm.load(); } catch {}
   }
 
-  // intento básico
-  const p = bgm.play();
-  if (p && typeof p.catch === 'function') {
-    p.catch(() => {
-      // 1) reintento rápido
-      try { bgm.play(); } catch {}
-
-      // 2) fallback con WebAudio para “desbloquear” audio
-      try {
-        if (!audioUnlocked) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          const src = audioCtx.createMediaElementSource(bgm);
-          const gain = audioCtx.createGain();
-          src.connect(gain).connect(audioCtx.destination);
-          audioCtx.resume();
-          audioUnlocked = true;
-          // reintento final
+  const attempt = () => {
+    try {
+      const p = bgm.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          // reintento rápido
           try { bgm.play(); } catch {}
-        }
-      } catch {}
-    });
-  }
+
+          // fallback con WebAudio para “desbloquear” audio
+          try {
+            if (!audioUnlocked) {
+              audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+              const src = audioCtx.createMediaElementSource(bgm);
+              const gain = audioCtx.createGain();
+              src.connect(gain).connect(audioCtx.destination);
+              audioCtx.resume();
+              audioUnlocked = true;
+              // último reintento
+              try { bgm.play(); } catch {}
+            }
+          } catch {}
+        });
+      }
+    } catch {}
+  };
+
+  attempt();
 }
+
+// pequeños “desbloqueos” extra por si el usuario cambia de pestaña y vuelve
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && hasStarted && bgm.paused) {
+    tryPlayBgmInline();
+  }
+}, { passive: true });
 
 /* =================== Parámetros visuales =================== */
 const PETAL_OFFSET_MUL = 0.58;
@@ -310,8 +323,8 @@ function getConfigMedidasFijas(){
 
   // Móvil
   if (canvas.clientWidth <= 768) {
-    centroX = w * 0.20; baseX = w * 0.20;
-    centroY = h * 0.20; baseY = h * 0.30;
+    centroX = w * 0.15; baseX = w * 0.15;
+    centroY = h * 0.15; baseY = h * 0.35;
     spreadX = min * 0.13;
     spreadY = min * 0.14;
 
