@@ -1,31 +1,56 @@
-const canvas = document.getElementById('Flor');
-const ctx = canvas.getContext('2d');
-const B1 = document.getElementById('B1');
+/* =================== DOM =================== */
+const canvas   = document.getElementById('Flor');
+const ctx      = canvas.getContext('2d');
+const B1       = document.getElementById('B1');
 const loveText = document.getElementById('loveText');
-const bgm = document.getElementById('bgm');
-const vol = document.getElementById('vol');
+const bgm      = document.getElementById('bgm');
+const vol      = document.getElementById('vol');
+
+/* =================== Estado global =================== */
+let hasStarted = false;     // ← NO animar hasta botón
+let animId = null;          // id del requestAnimationFrame actual
 
 /* =================== Música =================== */
 vol.addEventListener('input', () => {
-  bgm.volume = parseFloat(vol.value || '0.7');
+  const v = Number.isFinite(+vol.value) ? +vol.value : 0.7;
+  bgm.volume = Math.max(0, Math.min(1, v));
 });
 
 async function startMusic() {
   try {
-    bgm.volume = parseFloat(vol.value || '0.7');
-    await bgm.play();
+    const v = Number.isFinite(+vol.value) ? +vol.value : 0.7;
+    bgm.volume = Math.max(0, Math.min(1, v));
+    await bgm.play(); // requiere gesto del usuario
   } catch {}
 }
 
 /* =================== Parámetros visuales =================== */
 const PETAL_OFFSET_MUL = 0.58;
-const PETAL_SCALE_Y = 1.9;
+const PETAL_SCALE_Y    = 1.9;
+const DUR_TALLO = 1200;
+const DUR_PET   = 700;
+const PALETA    = ['#ffdb27', '#ffd000', '#ffe27a', '#f7c948', '#f4d35e'];
 
-/* =================== Utilidades de dibujo =================== */
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+/* =================== Canvas & DPR =================== */
+function scaleCanvasToDPR() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr  = Math.max(1, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.floor(rect.width  * dpr));
+  const h = Math.max(1, Math.floor(rect.height * dpr));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width  = w;
+    canvas.height = h;
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+/* =================== Primitivas de dibujo =================== */
 function dibujarPetalo(x, y, radioX, escalaY, rot, color, prog, offset = 0) {
   const pasos = 100;
   const hasta = Math.floor(pasos * prog);
-  const dAng = (Math.PI / pasos) * 2;
+  const dAng  = (Math.PI / pasos) * 2;
 
   ctx.save();
   ctx.translate(x, y);
@@ -34,14 +59,14 @@ function dibujarPetalo(x, y, radioX, escalaY, rot, color, prog, offset = 0) {
   ctx.scale(1, escalaY);
 
   ctx.shadowColor = color;
-  ctx.shadowBlur = 6;
+  ctx.shadowBlur  = 6;
 
   ctx.beginPath();
   for (let i = 0; i <= hasta; i++) {
     const ang = i * dAng;
-    const r = Math.sin(ang) * radioX;
-    const px = Math.cos(ang) * r;
-    const py = Math.sin(ang) * r;
+    const r   = Math.sin(ang) * radioX;
+    const px  = Math.cos(ang) * r;
+    const py  = Math.sin(ang) * r;
     if (i === 0) ctx.moveTo(px, py);
     else ctx.lineTo(px, py);
   }
@@ -69,11 +94,11 @@ function dibujarTalloConvergente(x, y, baseX, baseY, t, grosor = 3, color = '#11
 }
 
 function dibujarParDeHojas(x, y, ex, ey, hojaT) {
-  const hx = x + (ex - x) * 0.4,
-    hy = y + (ey - y) * 0.4;
-  const hx2 = x + (ex - x) * 0.65,
-    hy2 = y + (ey - y) * 0.65;
-  dibujarPetalo(hx + 18 * hojaT, hy, 14, 2, Math.PI * 1.05, '#2ecc71', hojaT);
+  const hx  = x + (ex - x) * 0.4;
+  const hy  = y + (ey - y) * 0.4;
+  const hx2 = x + (ex - x) * 0.65;
+  const hy2 = y + (ey - y) * 0.65;
+  dibujarPetalo(hx  + 18 * hojaT, hy,  14, 2, Math.PI * 1.05, '#2ecc71', hojaT);
   dibujarPetalo(hx2 - 18 * hojaT, hy2, 14, 2, Math.PI * 0.05, '#2ecc71', hojaT);
 }
 
@@ -100,39 +125,33 @@ function dibujarSombraSuelo(baseX, baseY) {
   ctx.restore();
 }
 
-/* =================== Motor de animación =================== */
-const DUR_TALLO = 1200;
-const DUR_PET = 700;
-const PALETA = ['#ffdb27', '#ffd000', '#ffe27a', '#f7c948', '#f4d35e'];
-
+/* =================== Modelo Flor =================== */
 let hojasPairsRestantes = 0;
 
 class Flor {
   constructor({ x, y, petalos, radio, color, baseX, baseY, start = 0, z = 0 }) {
-    this.x = x;
-    this.y = y;
-    this.baseX = baseX;
-    this.baseY = baseY;
+    this.x = x; this.y = y;
+    this.baseX = baseX; this.baseY = baseY;
     this.petalos = petalos;
-    this.radio = radio;
-    this.color = color;
-    this.start = start;
-    this.z = z;
-    this.grosor = 2 + Math.random() * 2;
+    this.radio   = radio;
+    this.color   = color;
+    this.start   = start;
+    this.z       = z;
+    this.grosor  = 2 + Math.random() * 2;
     this.petalOffset = this.radio * PETAL_OFFSET_MUL;
-    this.rotJitter = Array.from({ length: this.petalos }, () => (Math.random() - 0.5) * 0.25);
-    this.tieneHojas = false;
+    this.rotJitter   = Array.from({ length: this.petalos }, () => (Math.random() - 0.5) * 0.25);
+    this.tieneHojas  = false;
   }
 
   draw(now, t0) {
-    const t = now - t0 - this.start;
-    const kt = Math.max(0, Math.min(1, t / DUR_TALLO));
+    const t  = now - t0 - this.start;
+    const kt = clamp(t / DUR_TALLO, 0, 1);
 
     let ex, ey;
     if (kt > 0) {
-      const tip = dibujarTalloConvergente(this.x, this.y, this.baseX, this.baseY, kt, this.grosor, '#0f3b12');
-      ex = tip.ex;
-      ey = tip.ey;
+      ({ ex, ey } = dibujarTalloConvergente(
+        this.x, this.y, this.baseX, this.baseY, kt, this.grosor, '#0f3b12'
+      ));
       if (kt > 0.6 && !this.tieneHojas && hojasPairsRestantes > 0) {
         this.tieneHojas = true;
         hojasPairsRestantes--;
@@ -147,10 +166,10 @@ class Flor {
     const angStep = (Math.PI * 2) / this.petalos;
     for (let i = 0; i < this.petalos; i++) {
       const startPet = DUR_TALLO + i * DUR_PET;
-      const local = t - startPet;
+      const local    = t - startPet;
       if (local >= 0) {
-        const prog = Math.min(1, local / DUR_PET);
-        const rot = angStep * i + this.rotJitter[i];
+        const prog = clamp(local / DUR_PET, 0, 1);
+        const rot  = angStep * i + this.rotJitter[i];
         dibujarPetalo(this.x, this.y, this.radio, PETAL_SCALE_Y, rot, this.color, prog, this.petalOffset);
       }
     }
@@ -171,27 +190,30 @@ function distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, bas
   while (nums.reduce((a, b) => a + b, 0) < count) nums[2]++;
 
   const puntos = [];
+  const isMobile = canvas.clientWidth <= 768;
+
   capas.forEach((capa, idx) => {
-    const n = nums[idx];
+    const n   = nums[idx];
     const pts = [];
     for (let i = 0; i < n; i++) {
       const a = (Math.random() * 2 - 1);
       const b = (Math.random() * 2 - 1);
       const r = Math.sqrt(Math.random());
       const x0 = centroX + (a * r) * spreadX;
-      let y0 = centroY + (b * r) * spreadY;
+      let   y0 = centroY + (b * r) * spreadY;
       if (y0 > centroY) y0 = centroY + (y0 - centroY) * 0.6;
 
       const dx = baseX - x0, dy = baseY - y0;
-      const mag = Math.hypot(dx, dy) || 1;
-      const tilt = 0.03;
+      const mag  = Math.hypot(dx, dy) || 1;
+      const tilt = isMobile ? 0.008 : 0.03;
+
       const x = x0 + (dx / mag) * spreadX * tilt;
       const y = y0 + (dy / mag) * spreadY * tilt;
 
       pts.push({ x, y });
     }
 
-    // relajación por repulsión
+    // relajación + sujeción al óvalo
     const iter = 10;
     for (let it = 0; it < iter; it++) {
       for (let i = 0; i < n; i++) {
@@ -203,20 +225,19 @@ function distribuirRamilleteSuave(count, centroX, centroY, spreadX, spreadY, bas
           if (d < minD) {
             const push = (minD - d) * 0.5;
             dx /= d; dy /= d;
-            p.x -= dx * push;
-            p.y -= dy * push;
-            q.x += dx * push;
-            q.y += dy * push;
+            p.x -= dx * push; p.y -= dy * push;
+            q.x += dx * push; q.y += dy * push;
           }
         }
       }
       for (const p of pts) {
-        p.x = centroX + Math.max(-spreadX, Math.min(spreadX, p.x - centroX));
-        p.y = centroY + Math.max(-spreadY, Math.min(spreadY, p.y - centroY));
+        p.x = centroX + clamp(p.x - centroX, -spreadX, spreadX);
+        p.y = centroY + clamp(p.y - centroY, -spreadY, spreadY);
       }
     }
     for (const p of pts) puntos.push({ ...p, z: capa.z, radioMul: capa.radioMul });
   });
+
   puntos.sort((a, b) => (a.z - b.z) || (a.y - b.y));
   return puntos;
 }
@@ -245,50 +266,34 @@ function dibujarLazo(baseX, baseY) {
   ctx.restore();
 }
 
-// ===== Layout / Config =====
+/* =================== Layout / Config =================== */
 function getConfigMedidasFijas(){
   const w = canvas.width, h = canvas.height, min = Math.min(w, h);
-  const ar = w / Math.max(1, h);
 
-  // --- PC / Tablet (dejas tu spread grande) ---
-  let centroX = w * 0.40;
-  let baseX   = w * 0.40;
-  let centroY = h * 0.32;
-  let baseY   = h * 0.60;
-  let spreadX = min * 0.25;      // <== tu valor para PC
-  let spreadY = min * 0.22 * .80; // <== tu valor para PC
+  // PC / Tablet (tu setup)
+  let centroX = w * 0.40, baseX = w * 0.40;
+  let centroY = h * 0.32, baseY = h * 0.60;
+  let spreadX = min * 0.25;
+  let spreadY = min * 0.22 * 0.80;
   const count = 12;
 
-// --- Android / móvil ---
-if (w <= 768) {
-  // 1) Muévelas más a la izquierda
-  centroX = w * 0.20;
-  baseX   = w * 0.20;
+  // Móvil
+  if (canvas.clientWidth <= 768) {
+    centroX = w * 0.27; baseX = w * 0.27;
+    centroY = h * 0.26; baseY = h * 0.46;
+    spreadX = min * 0.13;
+    spreadY = min * 0.14;
 
-  // 2) Ajusta vertical
-  centroY = h * 0.14;
-  baseY   = h * 0.30;
-
-  // 3) Spread más compacto en móvil
-  spreadX = min * 0.15;   // antes 0.16
-  spreadY = min * 0.14;
-
-  const tilt = 0.012;
-
-  // 5) “Sujeta” el spread para no tocar bordes
-  const marginX = 60; // margen grande para pétalos
-  const maxXSpan = Math.min(centroX - marginX, (w - centroX) - marginX);
-  spreadX = Math.max(8, Math.min(spreadX, maxXSpan));
-
-  const marginY = 20;
-  const maxYSpan = Math.min(centroY - marginY, (h - centroY) - marginY);
-  spreadY = Math.max(8, Math.min(spreadY, maxYSpan));
-}
-
+    const marginX = 60, marginY = 20;   // margen por pétalos/sombras
+    const maxXSpan = Math.min(centroX - marginX, (w - centroX) - marginX);
+    const maxYSpan = Math.min(centroY - marginY, (h - centroY) - marginY);
+    spreadX = clamp(spreadX, 8, maxXSpan);
+    spreadY = clamp(spreadY, 8, maxYSpan);
+  }
   return { count, centroX, centroY, spreadX, spreadY, baseX, baseY };
 }
 
-/* =================== Animación del ramo =================== */
+/* =================== Animación controlada =================== */
 function animarRamoRamillete(config = getConfigMedidasFijas()) {
   hojasPairsRestantes = 4;
   const t0 = performance.now();
@@ -299,16 +304,13 @@ function animarRamoRamillete(config = getConfigMedidasFijas()) {
   );
 
   const flores = puntos.map((p, i) => {
-    const petalos = 6 + Math.floor(Math.random() * 5);
+    const petalos   = 6 + Math.floor(Math.random() * 5);
     const baseRadio = 16 + Math.random() * 10;
-    const radio = baseRadio * p.radioMul;
-    const color = PALETA[Math.floor(Math.random() * PALETA.length)];
-    const start = Math.floor(i * 130 + Math.random() * 100);
-    return new Flor({
-      x: p.x, y: p.y, petalos, radio, color,
-      baseX: config.baseX, baseY: config.baseY,
-      start, z: p.z
-    });
+    const radio     = baseRadio * p.radioMul;
+    const color     = PALETA[Math.floor(Math.random() * PALETA.length)];
+    const start     = Math.floor(i * 130 + Math.random() * 100);
+    return new Flor({ x:p.x, y:p.y, petalos, radio, color,
+      baseX:config.baseX, baseY:config.baseY, start, z:p.z });
   });
 
   function loop(now) {
@@ -317,73 +319,57 @@ function animarRamoRamillete(config = getConfigMedidasFijas()) {
     dibujarLazo(config.baseX, config.baseY);
     let done = 0;
     for (const f of flores) if (f.draw(now, t0)) done++;
-    if (done < flores.length) requestAnimationFrame(loop);
+    if (done < flores.length) animId = requestAnimationFrame(loop);
   }
-  requestAnimationFrame(loop);
+  cancelAnimationFrame(animId ?? 0);   // no superponer loops
+  animId = requestAnimationFrame(loop);
 }
 
-/* =================== Sizing (HiDPI) =================== */
-function resizeCanvas() {
-  const rect = canvas.getBoundingClientRect();
-  const dpr = Math.max(1, window.devicePixelRatio || 1);
-  canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-  canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-
-function ensureSized() {
-  resizeCanvas();
-  if (canvas.width < 10 || canvas.height < 10) {
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    const cssW = canvas.clientWidth || canvas.offsetWidth || 360;
-    const cssH = canvas.clientHeight || canvas.offsetHeight || 240;
-    canvas.width = Math.floor(cssW * dpr);
-    canvas.height = Math.floor(cssH * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+/* =================== Redibujado seguro =================== */
+let ro;
+function requestRedraw() {
+  // Siempre escalar; solo animar si el usuario ya inició
+  scaleCanvasToDPR();
+  if (hasStarted) {
+    animarRamoRamillete(getConfigMedidasFijas());
+  } else {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 }
 
-let ramoIniciado = false;
-let rafRedrawTimer = null;
-
-function iniciarConMedidasFijas() {
-  ensureSized();
-  animarRamoRamillete(getConfigMedidasFijas());
-  ramoIniciado = true;
+/* =================== Inicio por botón =================== */
+async function onReceive() {
+  if (hasStarted) return;         // evita doble inicio (touch + click)
+  hasStarted = true;
+  await startMusic();
+  loveText.style.display = 'block';
+  requestRedraw();                // escalar + iniciar animación
 }
 
-function solicitarRedibujoMedidasFijas() {
-  if (!ramoIniciado) return;
-  if (rafRedrawTimer) cancelAnimationFrame(rafRedrawTimer);
-  rafRedrawTimer = requestAnimationFrame(() =>
-    animarRamoRamillete(getConfigMedidasFijas())
-  );
-}
+/* =================== Listeners =================== */
+B1.addEventListener('click', onReceive,      { passive: true, once: true });
+B1.addEventListener('touchstart', onReceive, { passive: true, once: true });
 
-/* Resize observer */
-const ro = new ResizeObserver(() => {
-  resizeCanvas();
-  solicitarRedibujoMedidasFijas();
-});
+// Observa cambios reales de tamaño
+ro = new ResizeObserver(requestRedraw);
 ro.observe(canvas);
 
-/* Eventos de carga y DPR */
-window.addEventListener('load', ensureSized);
-window.addEventListener('pageshow', ensureSized);
+// Cambios de DPR (zoom, pantallas externas, etc.)
 let lastDPR = window.devicePixelRatio;
 setInterval(() => {
   if (window.devicePixelRatio !== lastDPR) {
     lastDPR = window.devicePixelRatio;
-    resizeCanvas();
-    solicitarRedibujoMedidasFijas();
+    requestRedraw();
   }
 }, 500);
 
-/* =================== Interacción =================== */
-function onReceive() {
-  startMusic();
-  loveText.style.display = 'block';
-  iniciarConMedidasFijas();
-}
-B1.addEventListener('click', onReceive, { passive: true });
-B1.addEventListener('touchstart', onReceive, { passive: true });
+// Primer escalado al cargar/volver (sin animar)
+window.addEventListener('DOMContentLoaded', () => {
+  scaleCanvasToDPR();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}, { passive: true });
+
+window.addEventListener('pageshow', () => {
+  scaleCanvasToDPR();
+  if (!hasStarted) ctx.clearRect(0, 0, canvas.width, canvas.height);
+}, { passive: true });
