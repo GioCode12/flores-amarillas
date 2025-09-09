@@ -259,39 +259,33 @@ function getConfigMedidasFijas(){
   let spreadY = min * 0.22 * .80; // <== tu valor para PC
   const count = 12;
 
-  // --- Android / móvil ---
-  if (w <= 768) {
-    // 1) centra un poco más a la izquierda
-    centroX = w * 0.38;
-    baseX   = w * 0.38;
+// --- Android / móvil ---
+if (w <= 768) {
+  // 1) Muévelas más a la izquierda
+  centroX = w * 0.36;
+  baseX   = w * 0.36;
 
-    // 2) ligeramente más arriba para dejar aire al panel
-    centroY = h * 0.34;
-    baseY   = h * 0.64;
+  // 2) Ajusta vertical
+  centroY = h * 0.34;
+  baseY   = h * 0.64;
 
-    // 3) reduce spread para que no se salga a la derecha
-    spreadX = min * 0.16;
-    spreadY = min * 0.14;
+  // 3) Spread más compacto en móvil
+  spreadX = min * 0.15;   // antes 0.16
+  spreadY = min * 0.14;
 
-    // 4) “sujeta” el spread para que NUNCA exceda los bordes
-    const marginX = 20; // px de margen visual
-    const maxXSpan = Math.min(centroX - marginX, (w - centroX) - marginX);
-    spreadX = Math.max(8, Math.min(spreadX, maxXSpan));
+  // 4) Menos empuje hacia la base
+  //    (evita que migren a la derecha)
+  const tilt = 0.012;
 
-    const marginY = 20;
-    const maxYSpan = Math.min(centroY - marginY, (h - centroY) - marginY);
-    spreadY = Math.max(8, Math.min(spreadY, maxYSpan));
+  // 5) “Sujeta” el spread para no tocar bordes
+  const marginX = 60; // margen grande para pétalos
+  const maxXSpan = Math.min(centroX - marginX, (w - centroX) - marginX);
+  spreadX = Math.max(8, Math.min(spreadX, maxXSpan));
 
-    // Si la pantalla es muy alta/estrecha (tipo 20:9), compacta un poco más
-    if (ar < 0.6) {
-      spreadX *= 0.92;
-      spreadY *= 0.92;
-    }
-  } else if (w >= 1280) {
-    // opcional: abre un poquito en pantallas grandes
-    spreadX *= 1.05;
-    spreadY *= 1.05;
-  }
+  const marginY = 20;
+  const maxYSpan = Math.min(centroY - marginY, (h - centroY) - marginY);
+  spreadY = Math.max(8, Math.min(spreadY, maxYSpan));
+}
 
   return { count, centroX, centroY, spreadX, spreadY, baseX, baseY };
 }
@@ -395,3 +389,4 @@ function onReceive() {
 }
 B1.addEventListener('click', onReceive, { passive: true });
 B1.addEventListener('touchstart', onReceive, { passive: true });
+
