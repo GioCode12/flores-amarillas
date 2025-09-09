@@ -246,6 +246,7 @@ function dibujarLazo(baseX, baseY) {
 }
 
 /* =================== Config: centrado + zona segura =================== */
+/* =================== Config: centrado + zona segura =================== */
 function getConfigMedidasFijas() {
   const w = canvas.width;
   const h = canvas.height;
@@ -262,10 +263,10 @@ function getConfigMedidasFijas() {
 
   if (w <= 768) {
     // móviles
-    centroX = w * 0.30;
-    baseX   = w * 0.30;
-    centroY = h * 0.24;
-    baseY   = h * 0.40;
+    centroX = w * 0.50;
+    baseX   = w * 0.50;
+    centroY = h * 0.34;
+    baseY   = h * 0.66;
 
     if (ar < 0.6) spreadX *= 0.9;
   } else if (w >= 1280) {
@@ -375,3 +376,4 @@ function onReceive() {
 }
 B1.addEventListener('click', onReceive, { passive: true });
 B1.addEventListener('touchstart', onReceive, { passive: true });
+
