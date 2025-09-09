@@ -262,12 +262,12 @@ function getConfigMedidasFijas(){
 // --- Android / móvil ---
 if (w <= 768) {
   // 1) Muévelas más a la izquierda
-  centroX = w * 0.30;
-  baseX   = w * 0.30;
+  centroX = w * 0.20;
+  baseX   = w * 0.20;
 
   // 2) Ajusta vertical
-  centroY = h * 0.24;
-  baseY   = h * 0.44;
+  centroY = h * 0.14;
+  baseY   = h * 0.30;
 
   // 3) Spread más compacto en móvil
   spreadX = min * 0.15;   // antes 0.16
@@ -387,5 +387,3 @@ function onReceive() {
 }
 B1.addEventListener('click', onReceive, { passive: true });
 B1.addEventListener('touchstart', onReceive, { passive: true });
-
-
