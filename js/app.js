@@ -253,19 +253,19 @@ function getConfigMedidasFijas() {
   const ar = w / Math.max(1, h);
 
   // valores base (PC/Tablet)
-  let centroX = w * 0.45;
+  let centroX = w * 0.40;
   let centroY = h * 0.32;
-  let baseX   = w * 0.45;
+  let baseX   = w * 0.40;
   let baseY   = h * 0.70;
   let spreadX = min * 0.12 * 1.10;
   let spreadY = min * 0.10 * 1.10;
 
   if (w <= 768) {
     // móviles
-    centroX = w * 0.50;
-    baseX   = w * 0.50;
-    centroY = h * 0.34;
-    baseY   = h * 0.66;
+    centroX = w * 0.30;
+    baseX   = w * 0.30;
+    centroY = h * 0.24;
+    baseY   = h * 0.40;
 
     if (ar < 0.6) spreadX *= 0.9;
   } else if (w >= 1280) {
@@ -274,7 +274,7 @@ function getConfigMedidasFijas() {
   }
 
   return { count: 15, centroX, centroY, spreadX, spreadY, baseX, baseY };
-}
+
 
 /* =================== Animación del ramo =================== */
 function animarRamoRamillete(config = getConfigMedidasFijas()) {
@@ -375,3 +375,4 @@ function onReceive() {
 }
 B1.addEventListener('click', onReceive, { passive: true });
 B1.addEventListener('touchstart', onReceive, { passive: true });
+
