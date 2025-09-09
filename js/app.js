@@ -10,18 +10,44 @@ const vol      = document.getElementById('vol');
 let hasStarted = false;     // ← NO animar hasta botón
 let animId = null;          // id del requestAnimationFrame actual
 
-/* =================== Música =================== */
+/* =================== Música (móvil + desktop) =================== */
+// Mantén el control de volumen
 vol.addEventListener('input', () => {
   const v = Number.isFinite(+vol.value) ? +vol.value : 0.7;
   bgm.volume = Math.max(0, Math.min(1, v));
 });
 
+// Detecta móvil para no tocar desktop innecesariamente
+const IS_MOBILE = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+// “Desbloqueo” del audio en el primer gesto del usuario (solo móvil)
+function unlockAudioOnce() {
+  if (!IS_MOBILE) return;
+  try {
+    bgm.muted = true;
+    const p = bgm.play();            // intento reproducir
+    if (p && p.catch) p.catch(() => {});
+    bgm.pause();                     // paro enseguida
+    bgm.currentTime = 0;
+    bgm.muted = false;
+  } catch {}
+  window.removeEventListener('pointerdown', unlockAudioOnce, true);
+}
+if (IS_MOBILE) {
+  // cualquier toque en la página antes del botón sirve para desbloquear
+  window.addEventListener('pointerdown', unlockAudioOnce, true);
+}
+
 async function startMusic() {
   try {
     const v = Number.isFinite(+vol.value) ? +vol.value : 0.7;
     bgm.volume = Math.max(0, Math.min(1, v));
-    await bgm.play(); // requiere gesto del usuario
-  } catch {}
+    bgm.load();            // asegura datos listos (iOS)
+    bgm.currentTime = 0;   // desde el inicio
+    await bgm.play();      // ahora ya no depende de mover el slider
+  } catch {
+    // Si el navegador aún bloquea, el siguiente toque al botón lo arrancará.
+  }
 }
 
 /* =================== Parámetros visuales =================== */
@@ -277,7 +303,7 @@ function getConfigMedidasFijas(){
   let spreadY = min * 0.22 * 0.80;
   const count = 12;
 
-  // Móvil
+  // Móvil (se mantiene tu layout original)
   if (canvas.clientWidth <= 768) {
     centroX = w * 0.15; baseX = w * 0.15;
     centroY = h * 0.15; baseY = h * 0.35;
@@ -339,16 +365,16 @@ function requestRedraw() {
 
 /* =================== Inicio por botón =================== */
 async function onReceive() {
-  if (hasStarted) return;         // evita doble inicio (touch + click)
+  if (hasStarted) return;         // evita doble inicio
   hasStarted = true;
-  await startMusic();
+  await startMusic();             // audio arranca aquí
   loveText.style.display = 'block';
   requestRedraw();                // escalar + iniciar animación
 }
 
 /* =================== Listeners =================== */
-B1.addEventListener('click', onReceive,      { passive: true, once: true });
-B1.addEventListener('touchstart', onReceive, { passive: true, once: true });
+// Unificar para evitar doble disparo (click + touchstart)
+B1.addEventListener('pointerdown', onReceive, { passive: true, once: true });
 
 // Observa cambios reales de tamaño
 ro = new ResizeObserver(requestRedraw);
