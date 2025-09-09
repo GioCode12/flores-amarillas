@@ -11,17 +11,48 @@ let hasStarted = false;     // ← NO animar hasta botón
 let animId = null;          // id del requestAnimationFrame actual
 
 /* =================== Música =================== */
+// control de volumen con fallback
 vol.addEventListener('input', () => {
   const v = Number.isFinite(+vol.value) ? +vol.value : 0.7;
   bgm.volume = Math.max(0, Math.min(1, v));
 });
 
-async function startMusic() {
-  try {
-    const v = Number.isFinite(+vol.value) ? +vol.value : 0.7;
-    bgm.volume = Math.max(0, Math.min(1, v));
-    await bgm.play(); // requiere gesto del usuario
-  } catch {}
+// --- FIX ANDROID: reproducir SIN await y con reintentos en el MISMO gesto ---
+let audioUnlocked = false;
+let audioCtx = null;
+
+function tryPlayBgmInline() {
+  // volumen seguro
+  const v = Number.isFinite(+vol.value) ? +vol.value : 0.7;
+  bgm.volume = Math.max(0, Math.min(1, v));
+
+  // algunos Android requieren load() antes
+  if (bgm.readyState < 2) {
+    try { bgm.load(); } catch {}
+  }
+
+  // intento básico
+  const p = bgm.play();
+  if (p && typeof p.catch === 'function') {
+    p.catch(() => {
+      // 1) reintento rápido
+      try { bgm.play(); } catch {}
+
+      // 2) fallback con WebAudio para “desbloquear” audio
+      try {
+        if (!audioUnlocked) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const src = audioCtx.createMediaElementSource(bgm);
+          const gain = audioCtx.createGain();
+          src.connect(gain).connect(audioCtx.destination);
+          audioCtx.resume();
+          audioUnlocked = true;
+          // reintento final
+          try { bgm.play(); } catch {}
+        }
+      } catch {}
+    });
+  }
 }
 
 /* =================== Parámetros visuales =================== */
@@ -279,8 +310,8 @@ function getConfigMedidasFijas(){
 
   // Móvil
   if (canvas.clientWidth <= 768) {
-    centroX = w * 0.27; baseX = w * 0.27;
-    centroY = h * 0.26; baseY = h * 0.46;
+    centroX = w * 0.20; baseX = w * 0.20;
+    centroY = h * 0.20; baseY = h * 0.30;
     spreadX = min * 0.13;
     spreadY = min * 0.14;
 
@@ -338,17 +369,21 @@ function requestRedraw() {
 }
 
 /* =================== Inicio por botón =================== */
-async function onReceive() {
-  if (hasStarted) return;         // evita doble inicio (touch + click)
+function onReceive() {
+  if (hasStarted) return;   // evita doble inicio (touch+click)
   hasStarted = true;
-  await startMusic();
+
+  // *** Audio primero, en el MISMO gesto ***
+  tryPlayBgmInline();
+
+  // Mostrar texto y arrancar animación
   loveText.style.display = 'block';
-  requestRedraw();                // escalar + iniciar animación
+  requestRedraw();
 }
 
 /* =================== Listeners =================== */
-B1.addEventListener('click', onReceive,      { passive: true, once: true });
-B1.addEventListener('touchstart', onReceive, { passive: true, once: true });
+// usa pointerdown para cubrir click/touch con un solo gesto
+B1.addEventListener('pointerdown', onReceive, { passive: true, once: true });
 
 // Observa cambios reales de tamaño
 ro = new ResizeObserver(requestRedraw);
