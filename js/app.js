@@ -245,23 +245,56 @@ function dibujarLazo(baseX, baseY) {
   ctx.restore();
 }
 
-  // ===== Layout / Config =====
-  function getConfigMedidasFijas(){
-    const w=canvas.width, h=canvas.height, min=Math.min(w,h);
-    const ar=w/Math.max(1,h);
-    let centroX=w*0.40, centroY=h*0.32, baseX=w*0.40, baseY=h*0.60;
-    let spreadX=min*0.25*1, spreadY=min*0.22*.80, tilt=0.03;
+// ===== Layout / Config =====
+function getConfigMedidasFijas(){
+  const w = canvas.width, h = canvas.height, min = Math.min(w, h);
+  const ar = w / Math.max(1, h);
 
-    if(w<=768){
-      centroX=w*0.42; baseX=w*0.42;  // leve sesgo a la izquierda en móvil
-      centroY=h*0.35; baseY=h*0.66;
-      tilt=0.015;                     // menos empuje hacia la base
-      if(ar<0.6) spreadX*=0.9;
-    } else if (w>=1280){
-      spreadX*=1.05; spreadY*=1.05;
+  // --- PC / Tablet (dejas tu spread grande) ---
+  let centroX = w * 0.40;
+  let baseX   = w * 0.40;
+  let centroY = h * 0.32;
+  let baseY   = h * 0.60;
+  let spreadX = min * 0.25;      // <== tu valor para PC
+  let spreadY = min * 0.22 * .80; // <== tu valor para PC
+  const count = 12;
+
+  // --- Android / móvil ---
+  if (w <= 768) {
+    // 1) centra un poco más a la izquierda
+    centroX = w * 0.38;
+    baseX   = w * 0.38;
+
+    // 2) ligeramente más arriba para dejar aire al panel
+    centroY = h * 0.34;
+    baseY   = h * 0.64;
+
+    // 3) reduce spread para que no se salga a la derecha
+    spreadX = min * 0.16;
+    spreadY = min * 0.14;
+
+    // 4) “sujeta” el spread para que NUNCA exceda los bordes
+    const marginX = 20; // px de margen visual
+    const maxXSpan = Math.min(centroX - marginX, (w - centroX) - marginX);
+    spreadX = Math.max(8, Math.min(spreadX, maxXSpan));
+
+    const marginY = 20;
+    const maxYSpan = Math.min(centroY - marginY, (h - centroY) - marginY);
+    spreadY = Math.max(8, Math.min(spreadY, maxYSpan));
+
+    // Si la pantalla es muy alta/estrecha (tipo 20:9), compacta un poco más
+    if (ar < 0.6) {
+      spreadX *= 0.92;
+      spreadY *= 0.92;
     }
-    return {count:12, centroX, centroY, spreadX, spreadY, baseX, baseY, tilt};
+  } else if (w >= 1280) {
+    // opcional: abre un poquito en pantallas grandes
+    spreadX *= 1.05;
+    spreadY *= 1.05;
   }
+
+  return { count, centroX, centroY, spreadX, spreadY, baseX, baseY };
+}
 
 /* =================== Animación del ramo =================== */
 function animarRamoRamillete(config = getConfigMedidasFijas()) {
@@ -362,6 +395,3 @@ function onReceive() {
 }
 B1.addEventListener('click', onReceive, { passive: true });
 B1.addEventListener('touchstart', onReceive, { passive: true });
-
-
-
