@@ -262,19 +262,17 @@ function getConfigMedidasFijas(){
 // --- Android / móvil ---
 if (w <= 768) {
   // 1) Muévelas más a la izquierda
-  centroX = w * 0.36;
-  baseX   = w * 0.36;
+  centroX = w * 0.30;
+  baseX   = w * 0.30;
 
   // 2) Ajusta vertical
-  centroY = h * 0.34;
-  baseY   = h * 0.64;
+  centroY = h * 0.24;
+  baseY   = h * 0.44;
 
   // 3) Spread más compacto en móvil
   spreadX = min * 0.15;   // antes 0.16
   spreadY = min * 0.14;
 
-  // 4) Menos empuje hacia la base
-  //    (evita que migren a la derecha)
   const tilt = 0.012;
 
   // 5) “Sujeta” el spread para no tocar bordes
@@ -389,4 +387,5 @@ function onReceive() {
 }
 B1.addEventListener('click', onReceive, { passive: true });
 B1.addEventListener('touchstart', onReceive, { passive: true });
+
 
