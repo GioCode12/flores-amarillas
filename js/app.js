@@ -269,8 +269,9 @@ function getConfigMedidasFijas(){
     spreadX = clamp(spreadX, 8, maxXSpan);
     spreadY = clamp(spreadY, 8, maxYSpan);
   }
-  return { count, centroX, centroY, spreadX, spreadY, baseX, baseY };
+  return { count: 12, centroX, centroY, spreadX, spreadY, baseX, baseY };
 }
+
 
 /* =================== Animación del ramo =================== */
 function animarRamoRamillete(config = getConfigMedidasFijas()) {
