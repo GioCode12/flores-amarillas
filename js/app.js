@@ -253,8 +253,8 @@ function dibujarLazo(baseX, baseY) {
     let spreadX=min*0.25*1, spreadY=min*0.22*.80, tilt=0.03;
 
     if(w<=768){
-      centroX=w*0.32; baseX=w*0.32;  // leve sesgo a la izquierda en móvil
-      centroY=h*0.25; baseY=h*0.50;
+      centroX=w*0.42; baseX=w*0.42;  // leve sesgo a la izquierda en móvil
+      centroY=h*0.35; baseY=h*0.66;
       tilt=0.015;                     // menos empuje hacia la base
       if(ar<0.6) spreadX*=0.9;
     } else if (w>=1280){
@@ -362,5 +362,6 @@ function onReceive() {
 }
 B1.addEventListener('click', onReceive, { passive: true });
 B1.addEventListener('touchstart', onReceive, { passive: true });
+
 
 
